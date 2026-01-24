@@ -18,14 +18,14 @@ body {
 
 @layer base {
   :root {
-    /* Mars-inspired orange palette */
+    /* Mars-inspired orange palette with olive-green accents */
     --background: 0 0% 4%;
-    --foreground: 25 95% 60%; /* Bright dusty orange */
+    --foreground: 25 95% 60%; /* Bright dusty orange - primary text */
     --card: 0 0% 4%;
     --card-foreground: 25 95% 60%;
     --popover: 0 0% 4%;
     --popover-foreground: 25 95% 60%;
-    --primary: 25 95% 60%;
+    --primary: 25 95% 60%; /* Mars orange - primary */
     --primary-foreground: 0 0% 4%;
     --secondary: 20 80% 45%; /* Darker rust orange */
     --secondary-foreground: 25 95% 60%;
@@ -33,6 +33,12 @@ body {
     --muted-foreground: 25 75% 50%; /* Medium orange */
     --accent: 30 100% 55%; /* Vibrant orange accent */
     --accent-foreground: 0 0% 4%;
+
+    /* Olive-green accents - warm earth-tone complement */
+    --olive: 70 35% 45%; /* Dusty olive-green */
+    --olive-muted: 70 30% 35%; /* Darker muted olive */
+    --olive-light: 75 40% 55%; /* Lighter olive accent */
+
     --destructive: 0 80% 50%;
     --destructive-foreground: 25 95% 60%;
     --border: 20 60% 25%; /* Subtle rust border */

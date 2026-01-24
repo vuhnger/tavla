@@ -12,9 +12,13 @@ import {
   Snowflake,
   Wind
 } from 'lucide-react';
-import type { WeatherResponse } from '@/lib/types';
+import type { WeatherResponse, StopLocation } from '@/lib/types';
 
 const REFRESH_INTERVAL = 10 * 60 * 1000; // 10 minutes
+
+interface WeatherProps {
+  location?: StopLocation;
+}
 
 // Map MET symbol codes to Norwegian labels
 function getWeatherLabel(symbol: string): string {
@@ -101,41 +105,75 @@ function getWeatherIconComponent(symbol: string) {
   return icons[iconName] || Cloud;
 }
 
-export function Weather() {
+export function Weather({ location }: WeatherProps) {
   const [weather, setWeather] = useState<WeatherResponse | null>(null);
   const [loading, setLoading] = useState(true);
-
-  const fetchWeather = async () => {
-    try {
-      const response = await fetch('/api/weather', {
-        cache: 'no-store',
-      });
-
-      if (response.ok) {
-        const data: WeatherResponse = await response.json();
-        setWeather(data);
-      } else {
-        console.error('Failed to fetch weather:', response.statusText);
-      }
-    } catch (error) {
-      console.error('Error fetching weather:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const latitude = location?.latitude;
+  const longitude = location?.longitude;
 
   useEffect(() => {
-    fetchWeather();
+    if (typeof latitude !== 'number' || typeof longitude !== 'number') {
+      setWeather(null);
+      setLoading(true);
+      return;
+    }
 
-    const interval = setInterval(fetchWeather, REFRESH_INTERVAL);
+    let active = true;
 
-    return () => clearInterval(interval);
-  }, []);
+    const fetchWeather = async (showLoading: boolean) => {
+      try {
+        let url = '/api/weather';
+
+        // Use location coordinates if provided
+        const params = new URLSearchParams({
+          lat: latitude.toString(),
+          lon: longitude.toString(),
+        });
+        url = `/api/weather?${params.toString()}`;
+
+        if (showLoading) {
+          setLoading(true);
+        }
+        const response = await fetch(url, {
+          cache: 'no-store',
+        });
+
+        if (response.ok) {
+          const data: WeatherResponse = await response.json();
+          if (active) {
+            setWeather(data);
+          }
+        } else {
+          console.error('Failed to fetch weather:', response.statusText);
+        }
+      } catch (error) {
+        console.error('Error fetching weather:', error);
+      } finally {
+        if (active && showLoading) {
+          setLoading(false);
+        }
+      }
+    };
+
+    // Fetch weather immediately when location changes
+    setWeather(null);
+    fetchWeather(true);
+
+    // Set up periodic refresh
+    const interval = setInterval(() => {
+      fetchWeather(false);
+    }, REFRESH_INTERVAL);
+
+    return () => {
+      active = false;
+      clearInterval(interval);
+    };
+  }, [latitude, longitude]);
 
   if (loading || !weather?.weather) {
     return (
       <div className="flex items-center gap-6 font-pixel">
-        <Cloud className="w-14 h-14 md:w-16 md:h-16" strokeWidth={1.5} />
+        <Cloud className="w-14 h-14 md:w-16 md:h-16 text-[hsl(var(--olive))]" strokeWidth={1.5} />
         <div className="space-y-2">
           <div className="text-6xl md:text-7xl">--°</div>
           <div className="text-lg md:text-xl opacity-80">--</div>
@@ -148,15 +186,15 @@ export function Weather() {
   const WeatherIcon = getWeatherIconComponent(symbol);
 
   return (
-    <div className="flex items-center gap-6 font-pixel">
-      <WeatherIcon className="w-14 h-14 md:w-16 md:h-16" strokeWidth={1.5} />
+    <div className="flex items-center gap-6 font-pixel border-2 border-[hsl(var(--olive-muted))] p-6 md:p-8">
+      <WeatherIcon className="w-14 h-14 md:w-16 md:h-16 text-[hsl(var(--olive))]" strokeWidth={1.5} />
       <div className="space-y-2">
         <div className="text-6xl md:text-7xl">{Math.round(temperatureC)}°</div>
         <div className="text-lg md:text-xl opacity-80">{getWeatherLabel(symbol)}</div>
         <div className="flex items-center gap-4 text-base md:text-lg opacity-70">
           {wind !== null && (
             <div className="flex items-center gap-2">
-              <Wind className="w-4 h-4 md:w-5 md:h-5" strokeWidth={1.5} />
+              <Wind className="w-4 h-4 md:w-5 md:h-5 text-[hsl(var(--olive-light))]" strokeWidth={1.5} />
               <span>{wind.toFixed(1)} m/s</span>
             </div>
           )}

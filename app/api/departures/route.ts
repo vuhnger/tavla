@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { env } from '@/lib/env';
-import type { Departure, DeparturesResponse } from '@/lib/types';
+import type { Departure, DeparturesResponse, StopLocation } from '@/lib/types';
 
 const ENTUR_API_URL = 'https://api.entur.io/journey-planner/v3/graphql';
 const REQUEST_TIMEOUT = 10000; // 10 seconds
@@ -11,6 +11,8 @@ const DEPARTURES_QUERY = `
     stopPlace(id: $stopPlaceId) {
       id
       name
+      latitude
+      longitude
       estimatedCalls(timeRange: 72100, numberOfDepartures: $numberOfDepartures) {
         realtime
         aimedDepartureTime
@@ -67,6 +69,8 @@ interface EnturResponse {
     stopPlace?: {
       id: string;
       name: string;
+      latitude: number;
+      longitude: number;
       estimatedCalls: EnturCall[];
     };
   };
@@ -88,32 +92,37 @@ function filterMetroDepartures(calls: EnturCall[]): EnturCall[] {
   });
 }
 
-function filterInboundDepartures(calls: EnturCall[]): EnturCall[] {
-  // For Røa on Line 2, inbound destinations are toward city center
-  // Inbound destinations include: Ellingsrudåsen, and stops toward city
-  // Outbound is toward Østerås
-  return calls.filter(call => {
-    const destination = call.destinationDisplay.frontText.toLowerCase();
-    // Filter out Østerås (outbound)
-    return !destination.includes('østerås');
-  });
+function determineDirection(destination: string): 'mot sentrum' | 'fra sentrum' {
+  const dest = destination.toLowerCase();
+  // For T-bane Line 2 at Røa:
+  // Ellingsrudåsen = mot sentrum (inbound, toward city center)
+  // Østerås = fra sentrum (outbound, away from city center)
+  if (dest.includes('ellingsrudåsen') || dest.includes('bergkrystallen') || dest.includes('tøyen')) {
+    return 'mot sentrum';
+  }
+  return 'fra sentrum';
 }
 
 function mapDeparture(call: EnturCall): Departure {
   const departureTime = call.actualDepartureTime || call.expectedDepartureTime || call.aimedDepartureTime;
+  const destination = call.destinationDisplay.frontText;
 
   return {
     line: call.serviceJourney.journeyPattern.line.publicCode,
-    destination: call.destinationDisplay.frontText,
-    platform: call.quay.publicCode,
+    destination,
+    direction: determineDirection(destination),
     time: departureTime,
     minutesUntil: calculateMinutesUntil(departureTime),
     realtime: call.realtime,
   };
 }
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
+    // Allow overriding stopPlaceId via query parameter
+    const { searchParams } = new URL(request.url);
+    const stopPlaceId = searchParams.get('stopPlaceId') || env.entur.stopPlaceId;
+
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), REQUEST_TIMEOUT);
 
@@ -126,7 +135,7 @@ export async function GET() {
       body: JSON.stringify({
         query: DEPARTURES_QUERY,
         variables: {
-          stopPlaceId: env.entur.stopPlaceId,
+          stopPlaceId,
           numberOfDepartures: 20, // Fetch more to ensure we have enough after filtering
         },
       }),
@@ -165,14 +174,17 @@ export async function GET() {
 
     // Apply filters
     calls = filterMetroDepartures(calls);
-    calls = filterInboundDepartures(calls);
 
     // Map to our data model
     const departures = calls.slice(0, 10).map(mapDeparture);
     const stationName = data.data.stopPlace.name;
+    const stopLocation: StopLocation = {
+      latitude: data.data.stopPlace.latitude,
+      longitude: data.data.stopPlace.longitude,
+    };
 
     return NextResponse.json<DeparturesResponse>(
-      { departures, stationName },
+      { departures, stationName, stopLocation },
       {
         status: 200,
         headers: {

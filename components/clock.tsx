@@ -26,7 +26,7 @@ export function Clock() {
   if (!time) {
     return (
       <div className="flex items-center gap-6">
-        <ClockIcon className="w-16 h-16 md:w-20 md:h-20" strokeWidth={1.5} />
+        <ClockIcon className="w-16 h-16 md:w-20 md:h-20 text-[hsl(var(--olive-light))]" strokeWidth={1.5} />
         <div className="text-8xl md:text-9xl font-pixel">--:--</div>
       </div>
     );
@@ -34,7 +34,7 @@ export function Clock() {
 
   return (
     <div className="flex items-center gap-6">
-      <ClockIcon className="w-16 h-16 md:w-20 md:h-20" strokeWidth={1.5} />
+      <ClockIcon className="w-16 h-16 md:w-20 md:h-20 text-[hsl(var(--olive-light))]" strokeWidth={1.5} />
       <div className="text-8xl md:text-9xl font-pixel tracking-wider">
         {time}
       </div>

@@ -10,6 +10,8 @@ interface CachedWeather {
   expires: Date;
   lastModified: string;
   etag?: string;
+  lat: number;
+  lon: number;
 }
 
 let weatherCache: CachedWeather | null = null;
@@ -51,11 +53,15 @@ interface METResponse {
   };
 }
 
-function buildWeatherUrl(): string {
-  const { lat, lon, alt } = env.met.location;
+function buildWeatherUrl(lat?: number, lon?: number): string {
+  // Use provided coordinates or fall back to env defaults
+  const latitude = lat ?? env.met.location.lat;
+  const longitude = lon ?? env.met.location.lon;
+  const alt = env.met.location.alt;
+
   // Use max 4 decimal places as recommended by MET
-  const latRounded = lat.toFixed(4);
-  const lonRounded = lon.toFixed(4);
+  const latRounded = latitude.toFixed(4);
+  const lonRounded = longitude.toFixed(4);
   return `https://api.met.no/weatherapi/locationforecast/2.0/compact?lat=${latRounded}&lon=${lonRounded}&altitude=${alt}`;
 }
 
@@ -104,12 +110,18 @@ function parseCacheHeaders(headers: Headers): { expires: Date | null; lastModifi
   };
 }
 
-export async function GET() {
+export async function GET(request: Request) {
+  // Allow overriding coordinates via query parameters
+  const { searchParams } = new URL(request.url);
+  const lat = searchParams.get('lat') ? parseFloat(searchParams.get('lat')!) : env.met.location.lat;
+  const lon = searchParams.get('lon') ? parseFloat(searchParams.get('lon')!) : env.met.location.lon;
+
   try {
     const now = new Date();
 
-    // Check if cache is still valid
-    if (weatherCache && weatherCache.expires > now) {
+    // Check if cache is still valid and for the same location
+    if (weatherCache && weatherCache.expires > now &&
+        weatherCache.lat === lat && weatherCache.lon === lon) {
       console.log('Using cached weather data');
       return NextResponse.json<WeatherResponse>(
         { weather: weatherCache.data },
@@ -117,33 +129,35 @@ export async function GET() {
       );
     }
 
-    // Build request with conditional headers if we have cache
+    // Build request with conditional headers if we have cache for same location
     const headers: HeadersInit = {
       'User-Agent': env.met.userAgent,
     };
 
-    if (weatherCache?.lastModified) {
+    const cacheIsForSameLocation = weatherCache?.lat === lat && weatherCache?.lon === lon;
+
+    if (cacheIsForSameLocation && weatherCache?.lastModified) {
       headers['If-Modified-Since'] = weatherCache.lastModified;
     }
 
-    if (weatherCache?.etag) {
+    if (cacheIsForSameLocation && weatherCache?.etag) {
       headers['If-None-Match'] = weatherCache.etag;
     }
 
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), REQUEST_TIMEOUT);
 
-    const response = await fetch(buildWeatherUrl(), {
+    const response = await fetch(buildWeatherUrl(lat, lon), {
       headers,
       signal: controller.signal,
     });
 
     clearTimeout(timeoutId);
 
-    // Handle 304 Not Modified
+    // Handle 304 Not Modified (only if cache is for same location)
     if (response.status === 304) {
       console.log('Weather data not modified (304), extending cache');
-      if (weatherCache) {
+      if (weatherCache && cacheIsForSameLocation) {
         // Extend cache expiry
         const cacheHeaders = parseCacheHeaders(response.headers);
         if (cacheHeaders.expires) {
@@ -162,8 +176,8 @@ export async function GET() {
     if (!response.ok) {
       console.error(`MET API error: ${response.status} ${response.statusText}`);
 
-      // Return cached data if available, even if expired
-      if (weatherCache) {
+      // Return cached data if available and for same location, even if expired
+      if (weatherCache && cacheIsForSameLocation) {
         console.log('Using stale cache due to API error');
         return NextResponse.json<WeatherResponse>(
           { weather: weatherCache.data },
@@ -183,8 +197,8 @@ export async function GET() {
     if (!weather) {
       console.warn('Failed to parse weather data');
 
-      // Return cached data if available
-      if (weatherCache) {
+      // Return cached data if available and for same location
+      if (weatherCache && cacheIsForSameLocation) {
         return NextResponse.json<WeatherResponse>(
           { weather: weatherCache.data },
           { status: 200 }
@@ -204,9 +218,11 @@ export async function GET() {
       expires: cacheHeaders.expires || new Date(now.getTime() + 10 * 60 * 1000), // Default 10 min
       lastModified: cacheHeaders.lastModified || new Date().toUTCString(),
       etag: cacheHeaders.etag || undefined,
+      lat,
+      lon,
     };
 
-    console.log(`Weather data cached until ${weatherCache.expires.toISOString()}`);
+    console.log(`Weather data cached until ${weatherCache.expires.toISOString()} for location ${lat},${lon}`);
 
     return NextResponse.json<WeatherResponse>(
       { weather },
@@ -229,8 +245,8 @@ export async function GET() {
       console.error('Unknown error fetching weather:', error);
     }
 
-    // Return cached data if available
-    if (weatherCache) {
+    // Return cached data if available and for same location
+    if (weatherCache && weatherCache.lat === lat && weatherCache.lon === lon) {
       console.log('Using stale cache due to error');
       return NextResponse.json<WeatherResponse>(
         { weather: weatherCache.data },
