@@ -1,0 +1,54 @@
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  font-family: 'Press Start 2P', monospace;
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+}
+
+
+
+@layer base {
+  :root {
+    /* Mars-inspired orange palette */
+    --background: 0 0% 4%;
+    --foreground: 25 95% 60%; /* Bright dusty orange */
+    --card: 0 0% 4%;
+    --card-foreground: 25 95% 60%;
+    --popover: 0 0% 4%;
+    --popover-foreground: 25 95% 60%;
+    --primary: 25 95% 60%;
+    --primary-foreground: 0 0% 4%;
+    --secondary: 20 80% 45%; /* Darker rust orange */
+    --secondary-foreground: 25 95% 60%;
+    --muted: 20 60% 30%; /* Muted rust */
+    --muted-foreground: 25 75% 50%; /* Medium orange */
+    --accent: 30 100% 55%; /* Vibrant orange accent */
+    --accent-foreground: 0 0% 4%;
+    --destructive: 0 80% 50%;
+    --destructive-foreground: 25 95% 60%;
+    --border: 20 60% 25%; /* Subtle rust border */
+    --input: 20 60% 25%;
+    --ring: 25 95% 60%;
+    --radius: 0rem;
+  }
+}
+
+
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
