@@ -54,8 +54,13 @@ export function Departures({ onLocationChange }: DeparturesProps) {
   const [directionFilter, setDirectionFilter] = useState<DirectionFilter>('both');
   const [directionOpen, setDirectionOpen] = useState(false);
   const directionMenuRef = useRef<HTMLDivElement | null>(null);
+  const fetchControllerRef = useRef<AbortController | null>(null);
 
   const fetchDepartures = async (stopId?: string) => {
+    fetchControllerRef.current?.abort();
+    const controller = new AbortController();
+    fetchControllerRef.current = controller;
+
     try {
       const url = stopId
         ? `/api/departures?stopPlaceId=${encodeURIComponent(stopId)}`
@@ -63,6 +68,7 @@ export function Departures({ onLocationChange }: DeparturesProps) {
 
       const response = await fetch(url, {
         cache: 'no-store',
+        signal: controller.signal,
       });
 
       if (response.ok) {
@@ -87,23 +93,37 @@ export function Departures({ onLocationChange }: DeparturesProps) {
         console.error('Failed to fetch departures:', response.statusText);
       }
     } catch (error) {
+      if (error instanceof DOMException && error.name === 'AbortError') {
+        return;
+      }
       console.error('Error fetching departures:', error);
     } finally {
-      setLoading(false);
+      if (fetchControllerRef.current === controller) {
+        setLoading(false);
+      }
     }
   };
 
-  const handleStopSelect = (stopId: string, stopName: string) => {
+  const handleStopSelect = (stopId: string, stopName: string, location?: StopLocation) => {
     setSelectedStopId(stopId);
     setStationName(stopName);
+    setLoading(true);
 
     // Save to localStorage
     try {
       const storedStop: StoredStop = { id: stopId, name: stopName };
       localStorage.setItem(STORAGE_KEY, JSON.stringify(storedStop));
-      localStorage.removeItem(LOCATION_STORAGE_KEY);
+      if (location) {
+        localStorage.setItem(LOCATION_STORAGE_KEY, JSON.stringify(location));
+      } else {
+        localStorage.removeItem(LOCATION_STORAGE_KEY);
+      }
     } catch (error) {
       console.error('Error saving stop to localStorage:', error);
+    }
+
+    if (location && onLocationChange) {
+      onLocationChange(location);
     }
 
     // Fetch departures for new stop
@@ -153,6 +173,12 @@ export function Departures({ onLocationChange }: DeparturesProps) {
       // No saved stop, fetch default
       fetchDepartures();
     }
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      fetchControllerRef.current?.abort();
+    };
   }, []);
 
   useEffect(() => {

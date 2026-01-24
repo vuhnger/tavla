@@ -9,12 +9,12 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
-import type { Stop } from '@/lib/types';
+import type { Stop, StopLocation } from '@/lib/types';
 
 interface StopSearchProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onStopSelect: (stopId: string, stopName: string) => void;
+  onStopSelect: (stopId: string, stopName: string, location?: StopLocation) => void;
 }
 
 export function StopSearch({ open, onOpenChange, onStopSelect }: StopSearchProps) {
@@ -60,7 +60,13 @@ export function StopSearch({ open, onOpenChange, onStopSelect }: StopSearchProps
   }, [searchQuery, searchStops]);
 
   const handleStopClick = (stop: Stop) => {
-    onStopSelect(stop.id, stop.name);
+    const hasCoordinates =
+      typeof stop.latitude === 'number' && typeof stop.longitude === 'number';
+    const location = hasCoordinates
+      ? { latitude: stop.latitude as number, longitude: stop.longitude as number }
+      : undefined;
+
+    onStopSelect(stop.id, stop.name, location);
     onOpenChange(false);
     setSearchQuery('');
     setStops([]);

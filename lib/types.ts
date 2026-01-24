@@ -42,6 +42,8 @@ export interface Stop {
   name: string;
   locality?: string;
   category?: string[];
+  latitude?: number;
+  longitude?: number;
 }
 
 export interface StopSearchResponse {
