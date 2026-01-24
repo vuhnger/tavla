@@ -6,6 +6,9 @@ const GEOCODER_API_URL = 'https://api.entur.io/geocoder/v1/autocomplete';
 const REQUEST_TIMEOUT = 10000; // 10 seconds
 
 interface EnturFeature {
+  geometry?: {
+    coordinates?: [number, number];
+  };
   properties: {
     id: string;
     name: string;
@@ -70,12 +73,20 @@ export async function GET(request: Request) {
     }
 
     // Map features to Stop objects
-    const stops: Stop[] = data.features.map((feature) => ({
-      id: feature.properties.id,
-      name: feature.properties.name,
-      locality: feature.properties.locality,
-      category: feature.properties.category,
-    }));
+    const stops: Stop[] = data.features.map((feature) => {
+      const coordinates = feature.geometry?.coordinates;
+      const longitude = coordinates?.[0];
+      const latitude = coordinates?.[1];
+
+      return {
+        id: feature.properties.id,
+        name: feature.properties.name,
+        locality: feature.properties.locality,
+        category: feature.properties.category,
+        latitude: typeof latitude === 'number' ? latitude : undefined,
+        longitude: typeof longitude === 'number' ? longitude : undefined,
+      };
+    });
 
     return NextResponse.json<StopSearchResponse>(
       { stops },
