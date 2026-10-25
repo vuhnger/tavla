@@ -8,3 +8,4 @@ export const DARK_LIGHT = 0.5;
 export const NOON_HOUR = 12;
 export const MORNING_HOUR = 8;
 export const AFTERNOON_HOUR = 16;
+export const WEATHER_CACHE = 's-maxage=600';

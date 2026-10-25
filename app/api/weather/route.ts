@@ -1,4 +1,4 @@
-import { FORECAST_HOURS } from '@/lib/constants/weather';
+import { FORECAST_HOURS, WEATHER_CACHE } from '@/lib/constants/weather';
 import { env } from '@/lib/env';
 import { respond } from '@/lib/respond';
 import type { WeatherHour, WeatherResponse } from '@/lib/types';
@@ -42,7 +42,7 @@ const expiresFrom = (headers: Headers) => {
 };
 
 export async function GET() {
-  if (cache && cache.expires > Date.now()) return respond<WeatherResponse>({ hours: cache.hours });
+  if (cache && cache.expires > Date.now()) return respond<WeatherResponse>({ hours: cache.hours }, 200, WEATHER_CACHE);
 
   try {
     const headers: HeadersInit = { 'User-Agent': env.met.userAgent };
@@ -52,7 +52,7 @@ export async function GET() {
 
     if (response.status === 304 && cache) {
       cache.expires = expiresFrom(response.headers);
-      return respond<WeatherResponse>({ hours: cache.hours });
+      return respond<WeatherResponse>({ hours: cache.hours }, 200, WEATHER_CACHE);
     }
     if (!response.ok) throw new Error(`MET responded ${response.status}`);
 
@@ -60,9 +60,9 @@ export async function GET() {
     if (hours.length === 0) throw new Error('MET returned no hourly data');
 
     cache = { hours, expires: expiresFrom(response.headers), lastModified: response.headers.get('Last-Modified') };
-    return respond<WeatherResponse>({ hours });
+    return respond<WeatherResponse>({ hours }, 200, WEATHER_CACHE);
   } catch (error) {
     console.error('Weather fetch failed:', error instanceof Error ? error.message : error);
-    return respond<WeatherResponse>({ hours: cache?.hours ?? [], error: 'Weather unavailable' });
+    return respond<WeatherResponse>({ hours: cache?.hours ?? [], error: 'Weather unavailable' }, cache ? 200 : 502);
   }
 }

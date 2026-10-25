@@ -18,7 +18,7 @@ test('names each platform after its most common destination and adds begge', () 
   ]);
 });
 
-test('says alle for more than two platforms and skips it for one', () => {
+test('says alle for more than two platforms and lets a single platform stand for all', () => {
   expect(directionOptions([call('a', 'X'), call('b', 'Y'), call('c', 'Z')]).at(-1)?.label).toBe('alle');
-  expect(directionOptions([call('a', 'X')])).toEqual([{ id: 'a', label: 'mot X' }]);
+  expect(directionOptions([call('a', 'X')])).toEqual([{ id: ALL_QUAYS, label: 'mot X' }]);
 });

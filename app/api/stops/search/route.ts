@@ -1,4 +1,5 @@
 import {
+  SEARCH_CACHE,
   SEARCH_MAX_LENGTH,
   SEARCH_MIN_LENGTH,
   SEARCH_RESULTS,
@@ -42,9 +43,9 @@ export async function GET(request: Request) {
     const stops = features
       .map(({ properties: { id, name } }) => ({ id, name }))
       .filter((stop) => STOP_ID_PATTERN.test(stop.id));
-    return respond<StopsResponse>({ stops });
+    return respond<StopsResponse>({ stops }, 200, SEARCH_CACHE);
   } catch (error) {
     console.error('Stop search failed:', error instanceof Error ? error.message : error);
-    return respond<StopsResponse>({ stops: [], error: 'Search unavailable' });
+    return respond<StopsResponse>({ stops: [], error: 'Search unavailable' }, 502);
   }
 }

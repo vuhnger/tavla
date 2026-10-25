@@ -36,3 +36,10 @@ test('shows one row when two trains leave in the same minute', () => {
 test('counts minutes from the start of the current minute', () => {
   expect(minutesUntil(at(21, 5), at(20, 55, 59))).toBe(10);
 });
+
+test('counts real minutes across the switch from summer time', () => {
+  const now = new Date('2026-10-25T00:50:00Z');
+  const [first] = upcomingLeaves([departure(new Date('2026-10-25T01:30:00Z'))], now, 'in', 16, 6);
+  expect(first.leaveAt).toEqual(new Date('2026-10-25T01:14:00Z'));
+  expect(minutesUntil(first.leaveAt, now)).toBe(24);
+});

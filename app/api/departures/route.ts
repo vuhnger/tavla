@@ -1,4 +1,4 @@
-import { DEPARTURE_COUNT, RAIL_MODES, STOP_ID_PATTERN } from '@/lib/constants/departures';
+import { DEPARTURE_COUNT, DEPARTURES_CACHE, RAIL_MODES, STOP_ID_PATTERN } from '@/lib/constants/departures';
 import { env } from '@/lib/env';
 import { respond } from '@/lib/respond';
 import type { Departure, DeparturesResponse } from '@/lib/types';
@@ -57,9 +57,13 @@ export async function GET(request: Request) {
     const { data, errors }: EnturResponse = await response.json();
     if (errors?.length) throw new Error('Entur returned GraphQL errors');
 
-    return respond<DeparturesResponse>({ departures: (data?.stopPlace?.estimatedCalls ?? []).map(toDeparture) });
+    return respond<DeparturesResponse>(
+      { departures: (data?.stopPlace?.estimatedCalls ?? []).map(toDeparture) },
+      200,
+      DEPARTURES_CACHE,
+    );
   } catch (error) {
     console.error('Departures fetch failed:', error instanceof Error ? error.message : error);
-    return respond<DeparturesResponse>({ departures: [], error: 'Departures unavailable' });
+    return respond<DeparturesResponse>({ departures: [], error: 'Departures unavailable' }, 502);
   }
 }

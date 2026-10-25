@@ -17,6 +17,6 @@ export function directionOptions(departures: Departure[]): Direction[] {
   const quays = [...byQuay]
     .map(([id, names]) => ({ id, label: `mot ${mostCommon(names)}` }))
     .sort((a, b) => a.label.localeCompare(b.label, 'nb'));
-  if (quays.length < 2) return quays;
+  if (quays.length < 2) return quays.map((quay) => ({ ...quay, id: ALL_QUAYS }));
   return [...quays, { id: ALL_QUAYS, label: quays.length === 2 ? 'begge' : 'alle' }];
 }

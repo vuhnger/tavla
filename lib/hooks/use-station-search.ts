@@ -14,7 +14,7 @@ export function useStationSearch(query: string): Stop[] {
     const id = setTimeout(
       () =>
         fetch(stopSearchUrl(query), { signal: controller.signal })
-          .then((response) => response.json())
+          .then((response) => (response.ok ? response.json() : { stops: [] }))
           .then((body: StopsResponse) => setStops(body.stops))
           .catch(() => undefined),
       SEARCH_DELAY_MS,
