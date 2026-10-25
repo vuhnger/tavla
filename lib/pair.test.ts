@@ -1,5 +1,6 @@
 import { expect, test } from 'bun:test';
-import { matchesKey } from './pair';
+import { NextResponse } from 'next/server';
+import { keepPaired, matchesKey } from './pair';
 
 test('accepts only the exact key', () => {
   expect(matchesKey('a1b2c3d4e5f60718', 'a1b2c3d4e5f60718')).toBe(true);
@@ -11,4 +12,12 @@ test('accepts only the exact key', () => {
 test('never pairs when no key is configured', () => {
   expect(matchesKey('', '')).toBe(false);
   expect(matchesKey('anything', '')).toBe(false);
+});
+
+test('pairing renews the cookie for another 400 days', () => {
+  const cookie = keepPaired(NextResponse.json({}), 'a1b2c3d4e5f60718').headers.get('set-cookie') ?? '';
+  expect(cookie).toContain('tavla_key=a1b2c3d4e5f60718');
+  expect(cookie).toContain('Max-Age=34560000');
+  expect(cookie).toContain('HttpOnly');
+  expect(cookie).toContain('Secure');
 });
