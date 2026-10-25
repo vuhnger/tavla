@@ -1,14 +1,13 @@
 import { ALL_QUAYS } from '@/lib/constants/departures';
+import { MINUTE_MS } from '@/lib/constants/time';
+import { floorMinute } from '@/lib/time';
 import type { Departure } from '@/lib/types';
 
 export interface Leave {
   leaveAt: Date;
   departAt: Date;
+  situations: string[];
 }
-
-const MINUTE = 60_000;
-
-export const floorMinute = (date: Date) => new Date(Math.floor(date.getTime() / MINUTE) * MINUTE);
 
 export function upcomingLeaves(departures: Departure[], now: Date, quay: string, walkMinutes: number, count: number): Leave[] {
   const thisMinute = floorMinute(now).getTime();
@@ -16,7 +15,11 @@ export function upcomingLeaves(departures: Departure[], now: Date, quay: string,
     .filter((departure) => quay === ALL_QUAYS || departure.quay === quay)
     .map((departure) => {
       const departAt = new Date(departure.time);
-      return { leaveAt: floorMinute(new Date(departAt.getTime() - walkMinutes * MINUTE)), departAt };
+      return {
+        leaveAt: floorMinute(new Date(departAt.getTime() - walkMinutes * MINUTE_MS)),
+        departAt,
+        situations: departure.situations,
+      };
     })
     .filter((leave) => leave.leaveAt.getTime() >= thisMinute)
     .sort((a, b) => a.departAt.getTime() - b.departAt.getTime())
@@ -25,4 +28,6 @@ export function upcomingLeaves(departures: Departure[], now: Date, quay: string,
 }
 
 export const minutesUntil = (leaveAt: Date, now: Date) =>
-  Math.round((leaveAt.getTime() - floorMinute(now).getTime()) / MINUTE);
+  Math.round((leaveAt.getTime() - floorMinute(now).getTime()) / MINUTE_MS);
+
+export const disruptions = (leaves: Leave[]) => [...new Set(leaves.flatMap((leave) => leave.situations))];

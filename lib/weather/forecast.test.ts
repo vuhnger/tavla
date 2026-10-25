@@ -1,9 +1,12 @@
 import { expect, test } from 'bun:test';
+import { hourLabel } from '@/lib/time';
 import type { WeatherHour } from '@/lib/types';
 import { conditionWord, conditionsAt, feelsLike, hourAt, laterForecast, precipSpell } from './forecast';
 
+const oslo = (d: number, h: number, m = 0) => new Date(`2026-10-${d}T${hourLabel(h)}:${hourLabel(m)}:00+01:00`);
+
 const hour = (h: number, precipitation: number, symbol = precipitation > 0 ? 'rain' : 'cloudy'): WeatherHour => ({
-  time: new Date(2026, 9, 25, h).toISOString(),
+  time: oslo(26, h).toISOString(),
   temperatureC: 8,
   wind: 6,
   precipitation,
@@ -36,7 +39,7 @@ test('says when precipitation starts within six hours', () => {
 
 test('conditions take the wettest hour within two hours of leaving', () => {
   const hours = [hour(20, 0), hour(21, 0), hour(22, 1.4), hour(23, 0.3), hour(0, 3)];
-  const c = conditionsAt(hours, new Date(2026, 9, 25, 21, 5));
+  const c = conditionsAt(hours, oslo(26, 21, 5));
   expect(c?.maxPrecip).toBe(1.4);
   expect(c?.precip).toBe('rain');
   expect(conditionsAt([], new Date())).toBeNull();
@@ -44,15 +47,15 @@ test('conditions take the wettest hour within two hours of leaving', () => {
 
 test('picks the hour that covers now', () => {
   const hours = [hour(20, 0), hour(21, 0), hour(22, 0)];
-  expect(hourAt(hours, new Date(2026, 9, 25, 21, 40))?.time).toBe(hours[1].time);
+  expect(hourAt(hours, oslo(26, 21, 40))?.time).toBe(hours[1].time);
 });
 
 test('looks ahead to 16 before noon and to tomorrow 08 after noon', () => {
   const day = (d: number, h: number, temperatureC: number, symbol: string): WeatherHour => ({
-    time: new Date(2026, 9, d, h).toISOString(), temperatureC, wind: 2, precipitation: 0, cloud: 0, symbol,
+    time: oslo(d, h).toISOString(), temperatureC, wind: 2, precipitation: 0, cloud: 0, symbol,
   });
   const hours = [day(26, 16, 4.4, 'fair_day'), day(27, 8, 6.6, 'cloudy')];
-  expect(laterForecast(hours, new Date(2026, 9, 26, 7, 32))).toBe('kl 16 4° lettskyet');
-  expect(laterForecast(hours, new Date(2026, 9, 26, 20, 55))).toBe('i morgen kl 08 7° skyet');
-  expect(laterForecast([], new Date(2026, 9, 26, 20, 55))).toBeNull();
+  expect(laterForecast(hours, oslo(26, 7, 32))).toBe('kl 16 4° lettskyet');
+  expect(laterForecast(hours, oslo(26, 20, 55))).toBe('i morgen kl 08 7° skyet');
+  expect(laterForecast([], oslo(26, 20, 55))).toBeNull();
 });

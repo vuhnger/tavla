@@ -1,1 +1,3 @@
-export const REQUEST_TIMEOUT_MS = 10_000;
+import { secondsToMilliseconds } from 'date-fns';
+
+export const REQUEST_TIMEOUT_MS = secondsToMilliseconds(10);

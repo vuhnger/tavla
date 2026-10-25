@@ -11,6 +11,7 @@ export interface Departure {
   time: string;
   destination: string;
   quay: string;
+  situations: string[];
 }
 
 export interface WeatherHour {

@@ -2,7 +2,7 @@ import { expect, test } from 'bun:test';
 import { ALL_QUAYS } from '@/lib/constants/departures';
 import { directionOptions } from './directions';
 
-const call = (quay: string, destination: string) => ({ quay, destination, time: '' });
+const call = (quay: string, destination: string) => ({ quay, destination, time: '', situations: [] });
 
 test('names each platform after its most common destination and adds begge', () => {
   const options = directionOptions([
