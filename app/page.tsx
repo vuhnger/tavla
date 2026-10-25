@@ -13,7 +13,7 @@ import { WEATHER_REFRESH_MS } from '@/lib/constants/weather';
 import { WORKOUT_REFRESH_MS } from '@/lib/constants/workout';
 import { upcomingLeaves } from '@/lib/departures/leave';
 import { departuresUrl } from '@/lib/departures/url';
-import { useNow } from '@/lib/hooks/use-now';
+import { useNow } from '@/lib/time';
 import { usePoll } from '@/lib/hooks/use-poll';
 import { useSettings } from '@/lib/hooks/use-settings';
 import { isScreenOff } from '@/lib/screen';

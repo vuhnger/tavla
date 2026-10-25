@@ -1,8 +1,7 @@
 import { getPosition, getTimes } from 'suncalc';
 import { STATION } from '@/lib/constants/weather';
-import { hhmm } from '@/lib/format';
-
-const DAY = 86_400_000;
+import { DAY_MS } from '@/lib/constants/time';
+import { hhmm } from '@/lib/time';
 
 const timesOn = (date: Date) => getTimes(date, STATION.latitude, STATION.longitude);
 
@@ -16,6 +15,6 @@ export function sunLine(now: Date): string | null {
   const [word, time]: [string, Date | null] =
     now < sunrise ? ['opp', sunrise]
     : now < sunset ? ['ned', sunset]
-    : ['opp', timesOn(new Date(now.getTime() + DAY)).sunrise];
+    : ['opp', timesOn(new Date(now.getTime() + DAY_MS)).sunrise];
   return time ? `sol ${word} ${hhmm(time)}` : null;
 }

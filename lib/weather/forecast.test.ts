@@ -1,9 +1,9 @@
 import { expect, test } from 'bun:test';
-import { pad } from '@/lib/format';
+import { hourLabel } from '@/lib/time';
 import type { WeatherHour } from '@/lib/types';
 import { conditionWord, conditionsAt, feelsLike, hourAt, laterForecast, precipSpell } from './forecast';
 
-const oslo = (d: number, h: number, m = 0) => new Date(`2026-10-${d}T${pad(h)}:${pad(m)}:00+01:00`);
+const oslo = (d: number, h: number, m = 0) => new Date(`2026-10-${d}T${hourLabel(h)}:${hourLabel(m)}:00+01:00`);
 
 const hour = (h: number, precipitation: number, symbol = precipitation > 0 ? 'rain' : 'cloudy'): WeatherHour => ({
   time: oslo(26, h).toISOString(),

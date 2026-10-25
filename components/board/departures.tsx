@@ -1,6 +1,6 @@
 import { SOON_MINUTES } from '@/lib/constants/departures';
 import { type Leave, minutesUntil } from '@/lib/departures/leave';
-import { hhmm } from '@/lib/format';
+import { hhmm } from '@/lib/time';
 
 const HEADING = 'w-[18.125rem] pb-[1.125rem] text-left font-normal';
 

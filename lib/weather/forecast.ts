@@ -1,12 +1,12 @@
 import { AFTERNOON_HOUR, MORNING_HOUR, NOON_HOUR } from '@/lib/constants/weather';
-import { dateKey, hourOf, nextDayKey, pad } from '@/lib/format';
+import { HOUR_MS } from '@/lib/constants/time';
+import { dateKey, hourLabel, hourOf, nextDayKey } from '@/lib/time';
 import type { WeatherHour } from '@/lib/types';
 
 export type Sky = 'clear' | 'partly' | 'overcast';
 export type Precip = 'none' | 'rain' | 'sleet' | 'snow';
 
 const WET_MM = 0.1;
-const HOUR = 3_600_000;
 
 export function feelsLike(temperature: number, wind: number): number {
   const kmh = wind * 3.6;
@@ -42,20 +42,18 @@ export function conditionWord(symbol: string): string {
   return 'skyet';
 }
 
-const hourLabel = (time: string) => pad(hourOf(new Date(time)));
-
 export function precipSpell(hours: WeatherHour[]): string | null {
   const [current, ...later] = hours;
   if (!current) return null;
   if (current.precipitation >= WET_MM) {
     const dry = later.find((hour) => hour.precipitation < WET_MM);
     const precip = precipOf(current);
-    return dry && precip !== 'none' ? `${PRECIP_WORDS[precip]} til kl ${hourLabel(dry.time)}` : null;
+    return dry && precip !== 'none' ? `${PRECIP_WORDS[precip]} til kl ${hourLabel(hourOf(new Date(dry.time)))}` : null;
   }
   const wet = later.slice(0, 6).find((hour) => hour.precipitation >= 0.3);
   if (!wet) return null;
   const precip = precipOf(wet);
-  return precip === 'none' ? null : `${PRECIP_WORDS[precip]} fra kl ${hourLabel(wet.time)}`;
+  return precip === 'none' ? null : `${PRECIP_WORDS[precip]} fra kl ${hourLabel(hourOf(new Date(wet.time)))}`;
 }
 
 export interface Conditions {
@@ -70,7 +68,7 @@ export interface Conditions {
 const hoursFrom = (hours: WeatherHour[], at: Date, windowHours: number) =>
   hours.filter((hour) => {
     const t = new Date(hour.time).getTime();
-    return t > at.getTime() - HOUR && t < at.getTime() + windowHours * HOUR;
+    return t > at.getTime() - HOUR_MS && t < at.getTime() + windowHours * HOUR_MS;
   });
 
 export const hourAt = (hours: WeatherHour[], at: Date): WeatherHour | undefined => hoursFrom(hours, at, 1)[0];
@@ -81,7 +79,7 @@ export function laterForecast(hours: WeatherHour[], now: Date): string | null {
   const targetHour = tomorrow ? MORNING_HOUR : AFTERNOON_HOUR;
   const hour = hours.find((h) => dateKey(new Date(h.time)) === day && hourOf(new Date(h.time)) === targetHour);
   if (!hour) return null;
-  return `${tomorrow ? 'i morgen ' : ''}kl ${pad(targetHour)} ${Math.round(hour.temperatureC)}° ${conditionWord(hour.symbol)}`;
+  return `${tomorrow ? 'i morgen ' : ''}kl ${hourLabel(targetHour)} ${Math.round(hour.temperatureC)}° ${conditionWord(hour.symbol)}`;
 }
 
 export function conditionsAt(hours: WeatherHour[], at: Date, windowHours = 2): Conditions | null {
