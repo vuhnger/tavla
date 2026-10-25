@@ -6,6 +6,7 @@ import type { Departure } from '@/lib/types';
 export interface Leave {
   leaveAt: Date;
   departAt: Date;
+  situations: string[];
 }
 
 export function upcomingLeaves(departures: Departure[], now: Date, quay: string, walkMinutes: number, count: number): Leave[] {
@@ -14,7 +15,11 @@ export function upcomingLeaves(departures: Departure[], now: Date, quay: string,
     .filter((departure) => quay === ALL_QUAYS || departure.quay === quay)
     .map((departure) => {
       const departAt = new Date(departure.time);
-      return { leaveAt: floorMinute(new Date(departAt.getTime() - walkMinutes * MINUTE_MS)), departAt };
+      return {
+        leaveAt: floorMinute(new Date(departAt.getTime() - walkMinutes * MINUTE_MS)),
+        departAt,
+        situations: departure.situations,
+      };
     })
     .filter((leave) => leave.leaveAt.getTime() >= thisMinute)
     .sort((a, b) => a.departAt.getTime() - b.departAt.getTime())
@@ -24,3 +29,5 @@ export function upcomingLeaves(departures: Departure[], now: Date, quay: string,
 
 export const minutesUntil = (leaveAt: Date, now: Date) =>
   Math.round((leaveAt.getTime() - floorMinute(now).getTime()) / MINUTE_MS);
+
+export const disruptions = (leaves: Leave[]) => [...new Set(leaves.flatMap((leave) => leave.situations))];
