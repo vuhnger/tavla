@@ -4,7 +4,7 @@ import { CLOUD_FALLBACK, FORECAST_HOURS, WEATHER_CACHE } from '@/lib/constants/w
 import { env } from '@/lib/env';
 import { respond } from '@/lib/respond';
 import type { WeatherHour, WeatherResponse } from '@/lib/types';
-import { skyOf } from '@/lib/weather/forecast';
+import { skyOf } from '@/lib/weather/sky';
 
 const FALLBACK_TTL = minutesToMilliseconds(10);
 

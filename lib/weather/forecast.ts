@@ -4,7 +4,6 @@ import { HOUR_MS } from '@/lib/constants/time';
 import { dateKey, hourLabel, hourOf, nextDayKey } from '@/lib/time';
 import type { WeatherHour } from '@/lib/types';
 
-export type Sky = 'clear' | 'partly' | 'overcast';
 export type Precip = 'none' | 'rain' | 'sleet' | 'snow';
 
 const WET_MM = 0.1;
@@ -14,12 +13,6 @@ export function feelsLike(temperature: number, wind: number): number {
   if (temperature > 10 || kmh <= 4.8) return temperature;
   const v = kmh ** 0.16;
   return 13.12 + 0.6215 * temperature - 11.37 * v + 0.3965 * temperature * v;
-}
-
-export function skyOf(symbol: string): Sky {
-  if (symbol.startsWith('clearsky') || symbol.startsWith('fair')) return 'clear';
-  if (symbol.startsWith('partlycloudy')) return 'partly';
-  return 'overcast';
 }
 
 export function precipOf(hour: Pick<WeatherHour, 'symbol' | 'precipitation'> & { temperatureC?: number }): Precip {
