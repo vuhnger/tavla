@@ -1,4 +1,4 @@
-import { ALL_QUAYS } from '@/lib/constants/departures';
+import { ALL_QUAYS, LEAVE_NOW_MINUTES } from '@/lib/constants/departures';
 import { MINUTE_MS } from '@/lib/constants/time';
 import { floorMinute } from '@/lib/time';
 import type { Departure } from '@/lib/types';
@@ -29,5 +29,7 @@ export function upcomingLeaves(departures: Departure[], now: Date, quay: string,
 
 export const minutesUntil = (leaveAt: Date, now: Date) =>
   Math.round((leaveAt.getTime() - floorMinute(now).getTime()) / MINUTE_MS);
+
+export const leavingNow = (leaveAt: Date, now: Date) => minutesUntil(leaveAt, now) <= LEAVE_NOW_MINUTES;
 
 export const disruptions = (leaves: Leave[]) => [...new Set(leaves.flatMap((leave) => leave.situations))];
