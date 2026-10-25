@@ -1,3 +1,5 @@
+import { STATION } from './constants/weather';
+
 // Environment variable validation and configuration
 // All environment variables are loaded server-side only for security
 
@@ -31,15 +33,14 @@ export const env = {
   // Entur API Configuration
   entur: {
     clientName: getEnvVar('ENTUR_CLIENT_NAME', 'vuhnger-tavla'),
-    stopPlaceId: getEnvVar('STOP_PLACE_ID', 'NSR:StopPlace:59520'),
   },
 
   // MET Norway API Configuration
   met: {
     userAgent: getEnvVar('MET_USER_AGENT', 'tavla/1.0 (contact: victor.uhnger@gmail.com)'),
     location: {
-      lat: getEnvNumber('WEATHER_LAT', 59.9422),
-      lon: getEnvNumber('WEATHER_LON', 10.6454),
+      lat: getEnvNumber('WEATHER_LAT', STATION.latitude),
+      lon: getEnvNumber('WEATHER_LON', STATION.longitude),
       alt: getEnvNumber('WEATHER_ALT', 130),
     },
   },

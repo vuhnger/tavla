@@ -1,120 +1,50 @@
-import { NextResponse } from 'next/server';
+import {
+  SEARCH_MAX_LENGTH,
+  SEARCH_MIN_LENGTH,
+  SEARCH_RESULTS,
+  STATION_CATEGORIES,
+  STOP_ID_PATTERN,
+} from '@/lib/constants/departures';
+import { STATION } from '@/lib/constants/weather';
 import { env } from '@/lib/env';
-import type { Stop, StopSearchResponse } from '@/lib/types';
+import { respond } from '@/lib/respond';
+import type { Stop, StopsResponse } from '@/lib/types';
 
-const GEOCODER_API_URL = 'https://api.entur.io/geocoder/v1/autocomplete';
-const REQUEST_TIMEOUT = 10000; // 10 seconds
+const GEOCODER_URL = 'https://api.entur.io/geocoder/v1/autocomplete';
+const REQUEST_TIMEOUT = 10_000;
 
-interface EnturFeature {
-  geometry?: {
-    coordinates?: [number, number];
-  };
-  properties: {
-    id: string;
-    name: string;
-    locality?: string;
-    category?: string[];
-  };
-}
-
-interface EnturGeocoderResponse {
-  features?: EnturFeature[];
+interface GeocoderResponse {
+  features?: { properties: Stop }[];
 }
 
 export async function GET(request: Request) {
+  const query = (new URL(request.url).searchParams.get('q') ?? '').trim();
+  if (query.length < SEARCH_MIN_LENGTH || query.length > SEARCH_MAX_LENGTH) return respond<StopsResponse>({ stops: [] });
+
+  const url = new URL(GEOCODER_URL);
+  url.search = new URLSearchParams({
+    text: query,
+    layers: 'venue',
+    categories: STATION_CATEGORIES,
+    size: String(SEARCH_RESULTS),
+    'focus.point.lat': String(STATION.latitude),
+    'focus.point.lon': String(STATION.longitude),
+  }).toString();
+
   try {
-    const { searchParams } = new URL(request.url);
-    const query = searchParams.get('q');
-
-    if (!query || query.trim().length === 0) {
-      return NextResponse.json<StopSearchResponse>(
-        { stops: [] },
-        { status: 200 }
-      );
-    }
-
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), REQUEST_TIMEOUT);
-
-    let response: Response;
-    try {
-      // Build geocoder URL with filters for transit stops
-      const geocoderUrl = new URL(GEOCODER_API_URL);
-      geocoderUrl.searchParams.set('text', query);
-      geocoderUrl.searchParams.set('layers', 'venue');
-      geocoderUrl.searchParams.set('categories', 'metroStation,onstreetTram,railStation,busStation');
-      geocoderUrl.searchParams.set('size', '10');
-
-      response = await fetch(geocoderUrl.toString(), {
-        headers: {
-          'ET-Client-Name': env.entur.clientName,
-        },
-        signal: controller.signal,
-      });
-    } finally {
-      clearTimeout(timeoutId);
-    }
-
-    if (!response.ok) {
-      console.error(`Entur Geocoder API error: ${response.status} ${response.statusText}`);
-      return NextResponse.json<StopSearchResponse>(
-        { stops: [], error: 'Failed to search stops' },
-        { status: 200 }
-      );
-    }
-
-    const data: EnturGeocoderResponse = await response.json();
-
-    if (!data.features) {
-      return NextResponse.json<StopSearchResponse>(
-        { stops: [] },
-        { status: 200 }
-      );
-    }
-
-    // Map features to Stop objects
-    const stops: Stop[] = data.features.map((feature) => {
-      const coordinates = feature.geometry?.coordinates;
-      const longitude = coordinates?.[0];
-      const latitude = coordinates?.[1];
-
-      return {
-        id: feature.properties.id,
-        name: feature.properties.name,
-        locality: feature.properties.locality,
-        category: feature.properties.category,
-        latitude: typeof latitude === 'number' ? latitude : undefined,
-        longitude: typeof longitude === 'number' ? longitude : undefined,
-      };
+    const response = await fetch(url, {
+      headers: { 'ET-Client-Name': env.entur.clientName },
+      signal: AbortSignal.timeout(REQUEST_TIMEOUT),
     });
+    if (!response.ok) throw new Error(`Entur geocoder responded ${response.status}`);
 
-    return NextResponse.json<StopSearchResponse>(
-      { stops },
-      {
-        status: 200,
-        headers: {
-          'Cache-Control': 'public, max-age=300', // Cache search results for 5 minutes
-        },
-      }
-    );
-
+    const { features = [] }: GeocoderResponse = await response.json();
+    const stops = features
+      .map(({ properties: { id, name } }) => ({ id, name }))
+      .filter((stop) => STOP_ID_PATTERN.test(stop.id));
+    return respond<StopsResponse>({ stops });
   } catch (error) {
-    if (error instanceof Error) {
-      if (error.name === 'AbortError') {
-        console.error('Geocoder API request timeout');
-        return NextResponse.json<StopSearchResponse>(
-          { stops: [], error: 'Request timeout' },
-          { status: 200 }
-        );
-      }
-      console.error('Geocoder API error:', error.message);
-    } else {
-      console.error('Unknown error searching stops:', error);
-    }
-
-    return NextResponse.json<StopSearchResponse>(
-      { stops: [], error: 'Internal error' },
-      { status: 200 }
-    );
+    console.error('Stop search failed:', error instanceof Error ? error.message : error);
+    return respond<StopsResponse>({ stops: [], error: 'Search unavailable' });
   }
 }
