@@ -1,5 +1,5 @@
 import { AFTERNOON_HOUR, MORNING_HOUR, NOON_HOUR } from '@/lib/constants/weather';
-import { pad } from '@/lib/format';
+import { dateKey, hourOf, nextDayKey, pad } from '@/lib/format';
 import type { WeatherHour } from '@/lib/types';
 
 export type Sky = 'clear' | 'partly' | 'overcast';
@@ -42,7 +42,7 @@ export function conditionWord(symbol: string): string {
   return 'skyet';
 }
 
-const hourLabel = (time: string) => pad(new Date(time).getHours());
+const hourLabel = (time: string) => pad(hourOf(new Date(time)));
 
 export function precipSpell(hours: WeatherHour[]): string | null {
   const [current, ...later] = hours;
@@ -76,11 +76,12 @@ const hoursFrom = (hours: WeatherHour[], at: Date, windowHours: number) =>
 export const hourAt = (hours: WeatherHour[], at: Date): WeatherHour | undefined => hoursFrom(hours, at, 1)[0];
 
 export function laterForecast(hours: WeatherHour[], now: Date): string | null {
-  const tomorrow = now.getHours() >= NOON_HOUR;
-  const target = new Date(now.getFullYear(), now.getMonth(), now.getDate() + (tomorrow ? 1 : 0), tomorrow ? MORNING_HOUR : AFTERNOON_HOUR);
-  const hour = hours.find((h) => new Date(h.time).getTime() === target.getTime());
+  const tomorrow = hourOf(now) >= NOON_HOUR;
+  const day = tomorrow ? nextDayKey(dateKey(now)) : dateKey(now);
+  const targetHour = tomorrow ? MORNING_HOUR : AFTERNOON_HOUR;
+  const hour = hours.find((h) => dateKey(new Date(h.time)) === day && hourOf(new Date(h.time)) === targetHour);
   if (!hour) return null;
-  return `${tomorrow ? 'i morgen ' : ''}kl ${pad(target.getHours())} ${Math.round(hour.temperatureC)}° ${conditionWord(hour.symbol)}`;
+  return `${tomorrow ? 'i morgen ' : ''}kl ${pad(targetHour)} ${Math.round(hour.temperatureC)}° ${conditionWord(hour.symbol)}`;
 }
 
 export function conditionsAt(hours: WeatherHour[], at: Date, windowHours = 2): Conditions | null {
