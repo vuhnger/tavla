@@ -11,20 +11,20 @@ test('feels-like picks the jacket', () => {
   expect(words({ feels: 22, temperature: 22 })).toEqual(['t-skjorte']);
   expect(words({})).toEqual(['lett jakke']);
   expect(words({ feels: 8, temperature: 8 })).toEqual(['jakke']);
-  expect(words({ feels: -8, temperature: -6 })).toEqual(['vinterjakke', 'ull', 'lue', 'skjerf', 'votter']);
+  expect(words({ feels: -8, temperature: -6 })).toEqual(['lue', 'skjerf', 'vinterjakke', 'ull', 'votter']);
 });
 
 test('rain in windy weather gives a rain jacket, calm weather an umbrella', () => {
   const rain = { temperature: 8, feels: 5, maxPrecip: 0.8, precip: 'rain' as const };
-  expect(words({ ...rain, wind: 6 }, { dark: true, sunny: false })).toEqual(['regnjakke', 'lue', 'refleks']);
-  expect(words({ ...rain, wind: 3 })).toEqual(['jakke', 'paraply', 'lue']);
+  expect(words({ ...rain, wind: 6 }, { dark: true, sunny: false })).toEqual(['lue', 'regnjakke', 'refleks']);
+  expect(words({ ...rain, wind: 3 })).toEqual(['lue', 'jakke', 'paraply']);
 });
 
 test('snow and slush change the footwear', () => {
   expect(words({ temperature: -2, feels: -2, maxPrecip: 0.4, precip: 'snow' })).toEqual([
-    'vinterjakke',
     'lue',
     'skjerf',
+    'vinterjakke',
     'votter',
     'støvler',
     'brodder',
@@ -33,8 +33,13 @@ test('snow and slush change the footwear', () => {
 });
 
 test('sunglasses only when sunny and warm', () => {
-  expect(words({ temperature: 20, feels: 20 }, { dark: false, sunny: true })).toEqual(['t-skjorte', 'solbriller']);
+  expect(words({ temperature: 20, feels: 20 }, { dark: false, sunny: true })).toEqual(['solbriller', 't-skjorte']);
   expect(words({ temperature: 10, feels: 10 }, { dark: false, sunny: true })).toEqual(['jakke']);
+});
+
+test('lists clothes from head to toe', () => {
+  const downpour = { temperature: 7, feels: 5, maxPrecip: 2, precip: 'rain' as const, wind: 7 };
+  expect(words(downpour, { dark: true, sunny: false })).toEqual(['lue', 'regnjakke', 'støvler', 'refleks']);
 });
 
 test('a dark evening adds the reflector', () => {

@@ -63,16 +63,22 @@ const TOP_WORDS: Record<Top, string> = {
   winter: 'vinterjakke',
 };
 
-const EXTRA_WORDS = [
-  ['wool', 'ull'],
-  ['umbrella', 'paraply'],
+const ABOVE_TOP = [
   ['beanie', 'lue'],
+  ['shades', 'solbriller'],
   ['scarf', 'skjerf'],
+] as const;
+
+const BELOW_TOP = [
+  ['wool', 'ull'],
   ['mittens', 'votter'],
+  ['umbrella', 'paraply'],
   ['boots', 'støvler'],
   ['spikes', 'brodder'],
   ['reflector', 'refleks'],
-  ['shades', 'solbriller'],
 ] as const;
 
-export const outfitWords = (o: Outfit) => [TOP_WORDS[o.top], ...EXTRA_WORDS.filter(([key]) => o[key]).map(([, word]) => word)];
+const worn = (o: Outfit, extras: typeof ABOVE_TOP | typeof BELOW_TOP) =>
+  extras.filter(([key]) => o[key]).map(([, word]) => word);
+
+export const outfitWords = (o: Outfit) => [...worn(o, ABOVE_TOP), TOP_WORDS[o.top], ...worn(o, BELOW_TOP)];
