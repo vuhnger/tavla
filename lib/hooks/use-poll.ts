@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 
-export function usePoll<T>(url: string | null, intervalMs: number): T | null {
+export function usePoll<T>(url: string | false | null, intervalMs: number): T | null {
   const [data, setData] = useState<T | null>(null);
   useEffect(() => {
     setData(null);
