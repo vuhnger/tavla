@@ -44,4 +44,9 @@ export const env = {
       alt: getEnvNumber('WEATHER_ALT', 130),
     },
   },
+  garmin: {
+    icalUrl: getEnvVar('GARMIN_ICAL_URL', ''),
+  },
+
+  pairKey: getEnvVar('TAVLA_PAIR_KEY', ''),
 } as const;

@@ -6,13 +6,13 @@ import {
   STATION_CATEGORIES,
   STOP_ID_PATTERN,
 } from '@/lib/constants/departures';
+import { REQUEST_TIMEOUT_MS } from '@/lib/constants/http';
 import { STATION } from '@/lib/constants/weather';
 import { env } from '@/lib/env';
 import { respond } from '@/lib/respond';
 import type { Stop, StopsResponse } from '@/lib/types';
 
 const GEOCODER_URL = 'https://api.entur.io/geocoder/v1/autocomplete';
-const REQUEST_TIMEOUT = 10_000;
 
 interface GeocoderResponse {
   features?: { properties: Stop }[];
@@ -35,7 +35,7 @@ export async function GET(request: Request) {
   try {
     const response = await fetch(url, {
       headers: { 'ET-Client-Name': env.entur.clientName },
-      signal: AbortSignal.timeout(REQUEST_TIMEOUT),
+      signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
     });
     if (!response.ok) throw new Error(`Entur geocoder responded ${response.status}`);
 

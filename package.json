@@ -13,7 +13,8 @@
     "next": "^15.1.4",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
-    "suncalc": "^2.1.1"
+    "suncalc": "^2.1.1",
+    "ts-ics": "2.4.7"
   },
   "devDependencies": {
     "@types/bun": "^1.4.4",

@@ -21,6 +21,11 @@ export interface WeatherHour {
   symbol: string;
 }
 
+export interface Workout {
+  date: string;
+  title: string;
+}
+
 export interface DeparturesResponse {
   departures: Departure[];
   error?: string;
@@ -33,5 +38,10 @@ export interface StopsResponse {
 
 export interface WeatherResponse {
   hours: WeatherHour[];
+  error?: string;
+}
+
+export interface WorkoutResponse {
+  workouts: Workout[];
   error?: string;
 }
