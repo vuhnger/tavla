@@ -16,7 +16,7 @@ html {
   }
 
   .field {
-    @apply min-w-[28.75rem] appearance-none bg-transparent px-4 py-1.5 uppercase text-osd shadow-[inset_0_0_0_0.1875rem] shadow-soft;
+    @apply w-[28.75rem] appearance-none bg-transparent px-4 py-1.5 uppercase text-osd shadow-[inset_0_0_0_0.1875rem] shadow-soft;
   }
 
   .focusable {
