@@ -1,9 +1,8 @@
-process.env.TZ = 'Europe/Oslo';
-
 import { expect, test } from 'bun:test';
+import { hourLabel } from '@/lib/time';
 import { lightAt, sunAltitude, sunLine } from './sun';
 
-const at = (d: number, h: number, m = 0) => new Date(2026, 9, d, h, m);
+const at = (d: number, h: number, m = 0) => new Date(`2026-10-${d}T${hourLabel(h)}:${hourLabel(m)}:00+01:00`);
 
 test('the late October noon sun at Røa sits low but well up', () => {
   expect(sunAltitude(at(26, 12))).toBeGreaterThan(14);

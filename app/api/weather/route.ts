@@ -1,10 +1,11 @@
+import { minutesToMilliseconds } from 'date-fns';
 import { REQUEST_TIMEOUT_MS } from '@/lib/constants/http';
 import { FORECAST_HOURS, WEATHER_CACHE } from '@/lib/constants/weather';
 import { env } from '@/lib/env';
 import { respond } from '@/lib/respond';
 import type { WeatherHour, WeatherResponse } from '@/lib/types';
 
-const FALLBACK_TTL = 10 * 60_000;
+const FALLBACK_TTL = minutesToMilliseconds(10);
 
 interface METTimeseries {
   time: string;

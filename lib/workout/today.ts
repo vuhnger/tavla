@@ -1,4 +1,4 @@
-import { dateKey, nextDayKey } from '@/lib/format';
+import { dateKey, nextDayKey } from '@/lib/time';
 import type { Workout } from '@/lib/types';
 
 const titlesOn = (plan: Workout[], day: string) =>

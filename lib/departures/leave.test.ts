@@ -1,9 +1,10 @@
 import { expect, test } from 'bun:test';
 import { ALL_QUAYS } from '@/lib/constants/departures';
 import type { Departure } from '@/lib/types';
+import { hourLabel } from '@/lib/time';
 import { minutesUntil, upcomingLeaves } from './leave';
 
-const at = (h: number, m: number, s = 0) => new Date(2026, 9, 26, h, m, s);
+const at = (h: number, m: number, s = 0) => new Date(`2026-10-26T${hourLabel(h)}:${hourLabel(m)}:${hourLabel(s)}+01:00`);
 const departure = (time: Date, quay = 'in'): Departure => ({ destination: quay, quay, time: time.toISOString() });
 
 test('leave time is the departure minus the walk, rounded down to the minute', () => {

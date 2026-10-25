@@ -1,4 +1,4 @@
-import { dateLabel, hhmm } from '@/lib/format';
+import { dateLabel, hhmm } from '@/lib/time';
 import type { WeatherHour } from '@/lib/types';
 import { conditionWord, feelsLike } from '@/lib/weather/forecast';
 
