@@ -1,11 +1,13 @@
 'use client';
 
 import { useEffect, useRef } from 'react';
-import { FIGURE_X, FIGURE_Y, SCENE_FPS } from '@/lib/constants/scene';
+import { FIGURE_X, FIGURE_Y, SCENE_FPS, SCENE_SCALE, VIEW } from '@/lib/constants/scene';
 import { HEIGHT, WIDTH, drawBackdrop } from './backdrop';
 import { paintGrid, rasterFigure } from './figure';
 import { makeParticles, stepParticles } from './particles';
 import type { SceneSpec } from './spec';
+
+const rem = (pixels: number) => `${(pixels * SCENE_SCALE) / 16}rem`;
 
 export function Scene({ spec }: { spec: SceneSpec }) {
   const ref = useRef<HTMLCanvasElement>(null);
@@ -22,22 +24,26 @@ export function Scene({ spec }: { spec: SceneSpec }) {
     const frame = () => {
       ctx.drawImage(backdrop, 0, 0);
       paintGrid(ctx, figure, FIGURE_X, FIGURE_Y);
-      stepParticles(ctx, particles, wind, tick++);
+      if (particles) stepParticles(ctx, particles, wind, tick++);
     };
     frame();
-    if (particles.length === 0) return;
+    if (!particles) return;
     const id = setInterval(frame, 1000 / SCENE_FPS);
     return () => clearInterval(id);
   }, [key]);
 
   return (
-    <div className="relative h-[20.25rem] w-[27rem] flex-none overflow-hidden rounded-[1.25rem] shadow-[0_0_0_2px] shadow-rule">
+    <div
+      className="relative flex-none overflow-hidden rounded-[1.25rem] shadow-[0_0_0_2px] shadow-rule"
+      style={{ width: rem(VIEW.w), height: rem(VIEW.h) }}
+    >
       <canvas
         ref={ref}
         width={WIDTH}
         height={HEIGHT}
         aria-hidden
-        className="absolute left-[-27.375rem] top-[-9.75rem] h-[33.75rem] w-[60rem] [image-rendering:pixelated]"
+        className="absolute [image-rendering:pixelated]"
+        style={{ left: `-${rem(VIEW.x)}`, top: `-${rem(VIEW.y)}`, width: rem(WIDTH), height: rem(HEIGHT) }}
       />
     </div>
   );

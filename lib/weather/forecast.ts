@@ -1,4 +1,5 @@
 import { AFTERNOON_HOUR, MORNING_HOUR, NOON_HOUR } from '@/lib/constants/weather';
+import { SLEET_MAX_C, SNOW_MAX_C } from '@/lib/constants/weather';
 import { pad } from '@/lib/format';
 import type { WeatherHour } from '@/lib/types';
 
@@ -21,12 +22,15 @@ export function skyOf(symbol: string): Sky {
   return 'overcast';
 }
 
-export function precipOf(hour: Pick<WeatherHour, 'symbol' | 'precipitation'>): Precip {
-  const { symbol, precipitation } = hour;
+export function precipOf(hour: Pick<WeatherHour, 'symbol' | 'precipitation'> & { temperatureC?: number }): Precip {
+  const { symbol, precipitation, temperatureC } = hour;
   if (symbol.includes('snow')) return 'snow';
   if (symbol.includes('sleet')) return 'sleet';
-  if (symbol.includes('rain') || precipitation >= WET_MM) return 'rain';
-  return 'none';
+  if (symbol.includes('rain')) return 'rain';
+  if (precipitation < WET_MM) return 'none';
+  if (temperatureC === undefined) return 'rain';
+  if (temperatureC <= SNOW_MAX_C) return 'snow';
+  return temperatureC <= SLEET_MAX_C ? 'sleet' : 'rain';
 }
 
 const PRECIP_WORDS: Record<Exclude<Precip, 'none'>, string> = { rain: 'regn', sleet: 'sludd', snow: 'snø' };

@@ -38,7 +38,7 @@ test('sunglasses only when sunny and warm', () => {
 });
 
 test('a dark evening adds the reflector', () => {
-  const evening = { time: new Date(2026, 9, 26, 21).toISOString(), temperatureC: 8, wind: 2, precipitation: 0, symbol: 'cloudy' };
+  const evening = { time: new Date(2026, 9, 26, 21).toISOString(), temperatureC: 8, wind: 2, precipitation: 0, cloud: 0, symbol: 'cloudy' };
   expect(outfitAt([evening], new Date(2026, 9, 26, 21, 10))?.reflector).toBe(true);
   expect(outfitAt([], new Date(2026, 9, 26, 21, 10))).toBeNull();
 });

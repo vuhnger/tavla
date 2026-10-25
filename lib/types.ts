@@ -18,6 +18,7 @@ export interface WeatherHour {
   temperatureC: number;
   wind: number;
   precipitation: number;
+  cloud: number;
   symbol: string;
 }
 

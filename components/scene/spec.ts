@@ -1,6 +1,6 @@
-import { LIGHT_STEPS } from '@/lib/constants/scene';
+import { CLOUD_STEP, LIGHT_STEPS } from '@/lib/constants/scene';
 import type { WeatherHour } from '@/lib/types';
-import { type Precip, hourAt, precipOf, skyOf } from '@/lib/weather/forecast';
+import { type Precip, hourAt, precipOf } from '@/lib/weather/forecast';
 import type { Outfit } from '@/lib/weather/outfit';
 import { lightAt } from '@/lib/weather/sun';
 import type { Look } from './backdrop';
@@ -19,7 +19,7 @@ export function sceneSpec(hours: WeatherHour[], now: Date, outfit: Outfit): Scen
   return {
     look: {
       light: Math.round(lightAt(now) * LIGHT_STEPS) / LIGHT_STEPS,
-      sky: hour ? skyOf(hour.symbol) : 'clear',
+      cloud: Math.round((hour?.cloud ?? 0) / CLOUD_STEP) * CLOUD_STEP,
       wet: precip === 'rain' || precip === 'sleet',
       snowRoofs: precip === 'snow',
       month: now.getMonth(),

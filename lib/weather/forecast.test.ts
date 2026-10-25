@@ -7,6 +7,7 @@ const hour = (h: number, precipitation: number, symbol = precipitation > 0 ? 'ra
   temperatureC: 8,
   wind: 6,
   precipitation,
+  cloud: 0,
   symbol,
 });
 
@@ -48,7 +49,7 @@ test('picks the hour that covers now', () => {
 
 test('looks ahead to 16 before noon and to tomorrow 08 after noon', () => {
   const day = (d: number, h: number, temperatureC: number, symbol: string): WeatherHour => ({
-    time: new Date(2026, 9, d, h).toISOString(), temperatureC, wind: 2, precipitation: 0, symbol,
+    time: new Date(2026, 9, d, h).toISOString(), temperatureC, wind: 2, precipitation: 0, cloud: 0, symbol,
   });
   const hours = [day(26, 16, 4.4, 'fair_day'), day(27, 8, 6.6, 'cloudy')];
   expect(laterForecast(hours, new Date(2026, 9, 26, 7, 32))).toBe('kl 16 4° lettskyet');
