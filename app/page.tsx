@@ -15,6 +15,7 @@ import { upcomingLeaves } from '@/lib/departures/leave';
 import { departuresUrl } from '@/lib/departures/url';
 import { useNow } from '@/lib/time';
 import { usePoll } from '@/lib/hooks/use-poll';
+import { useReloadOnDeploy } from '@/lib/hooks/use-reload-on-deploy';
 import { useSettings } from '@/lib/hooks/use-settings';
 import { isScreenOff } from '@/lib/screen';
 import type { DeparturesResponse, WeatherResponse, WorkoutResponse } from '@/lib/types';
@@ -25,6 +26,7 @@ import { sunLine } from '@/lib/weather/sun';
 import { workoutLines } from '@/lib/workout/today';
 
 export default function Board() {
+  useReloadOnDeploy();
   const [settings] = useSettings();
   const now = useNow();
   const departures = usePoll<DeparturesResponse>(settings && departuresUrl(settings.stop.id), DEPARTURES_REFRESH_MS);
