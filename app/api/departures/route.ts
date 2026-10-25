@@ -1,10 +1,10 @@
 import { DEPARTURE_COUNT, DEPARTURES_CACHE, RAIL_MODES, STOP_ID_PATTERN } from '@/lib/constants/departures';
+import { REQUEST_TIMEOUT_MS } from '@/lib/constants/http';
 import { env } from '@/lib/env';
 import { respond } from '@/lib/respond';
 import type { Departure, DeparturesResponse } from '@/lib/types';
 
 const ENTUR_URL = 'https://api.entur.io/journey-planner/v3/graphql';
-const REQUEST_TIMEOUT = 10_000;
 const TIME_RANGE_SECONDS = 72_100;
 
 const QUERY = `
@@ -50,7 +50,7 @@ export async function GET(request: Request) {
         query: QUERY,
         variables: { id: stop, count: DEPARTURE_COUNT, range: TIME_RANGE_SECONDS, modes: RAIL_MODES },
       }),
-      signal: AbortSignal.timeout(REQUEST_TIMEOUT),
+      signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
     });
     if (!response.ok) throw new Error(`Entur responded ${response.status}`);
 

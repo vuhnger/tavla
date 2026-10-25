@@ -1,5 +1,7 @@
 export const pad = (n: number) => String(n).padStart(2, '0');
 
+export const dateKey = (date: Date) => `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
+
 export const hhmm = (date: Date) => `${pad(date.getHours())}:${pad(date.getMinutes())}`;
 
 const DATE_PARTS = new Intl.DateTimeFormat('nb-NO', { weekday: 'short', day: 'numeric', month: 'short' });
