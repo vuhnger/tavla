@@ -1,6 +1,7 @@
 import { DARK_LIGHT } from '@/lib/constants/weather';
 import type { WeatherHour } from '@/lib/types';
-import { type Conditions, conditionsAt, skyOf } from './forecast';
+import { type Conditions, conditionsAt } from './forecast';
+import { skyOf } from './sky';
 import { lightAt } from './sun';
 
 export type Top = 'tshirt' | 'light' | 'jacket' | 'rain' | 'winter';

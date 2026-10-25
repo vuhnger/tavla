@@ -43,7 +43,7 @@ test('lists clothes from head to toe', () => {
 });
 
 test('a dark evening adds the reflector', () => {
-  const evening = { time: new Date('2026-10-26T21:00:00+01:00').toISOString(), temperatureC: 8, wind: 2, precipitation: 0, symbol: 'cloudy' };
+  const evening = { time: new Date('2026-10-26T21:00:00+01:00').toISOString(), temperatureC: 8, wind: 2, precipitation: 0, cloud: 0, symbol: 'cloudy' };
   expect(outfitAt([evening], new Date('2026-10-26T21:10:00+01:00'))?.reflector).toBe(true);
   expect(outfitAt([], new Date('2026-10-26T21:10:00+01:00'))).toBeNull();
 });

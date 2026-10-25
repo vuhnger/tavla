@@ -1,16 +1,17 @@
 import { minutesToMilliseconds } from 'date-fns';
 import { REQUEST_TIMEOUT_MS } from '@/lib/constants/http';
-import { FORECAST_HOURS, WEATHER_CACHE } from '@/lib/constants/weather';
+import { CLOUD_FALLBACK, FORECAST_HOURS, WEATHER_CACHE } from '@/lib/constants/weather';
 import { env } from '@/lib/env';
 import { respond } from '@/lib/respond';
 import type { WeatherHour, WeatherResponse } from '@/lib/types';
+import { skyOf } from '@/lib/weather/sky';
 
 const FALLBACK_TTL = minutesToMilliseconds(10);
 
 interface METTimeseries {
   time: string;
   data: {
-    instant: { details: { air_temperature?: number; wind_speed?: number } };
+    instant: { details: { air_temperature?: number; wind_speed?: number; cloud_area_fraction?: number } };
     next_1_hours?: { summary: { symbol_code: string }; details: { precipitation_amount?: number } };
   };
 }
@@ -33,6 +34,7 @@ function parseHours(data: METResponse): WeatherHour[] {
       temperatureC: entry.data.instant.details.air_temperature!,
       wind: entry.data.instant.details.wind_speed ?? 0,
       precipitation: entry.data.next_1_hours!.details.precipitation_amount ?? 0,
+      cloud: entry.data.instant.details.cloud_area_fraction ?? CLOUD_FALLBACK[skyOf(entry.data.next_1_hours!.summary.symbol_code)],
       symbol: entry.data.next_1_hours!.summary.symbol_code,
     }));
 }

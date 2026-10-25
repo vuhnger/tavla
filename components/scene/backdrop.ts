@@ -1,4 +1,5 @@
-import type { Sky } from '@/lib/weather/forecast';
+import { CLOUD_CELL } from '@/lib/constants/scene';
+import { cloudiness, isCloud } from '@/lib/weather/cloud';
 
 export const WIDTH = 320;
 export const HEIGHT = 180;
@@ -7,7 +8,7 @@ export const LAMP_X = 240;
 
 export interface Look {
   light: number;
-  sky: Sky;
+  cloud: number;
   wet: boolean;
   snowRoofs: boolean;
   month: number;
@@ -33,9 +34,15 @@ const mix = (night: string, day: string, t: number) => {
   return `rgb(${a.map((v, i) => Math.round(v + (b[i] - v) * t)).join(',')})`;
 };
 
-const SKY: Record<'clear' | 'overcast', { night: string[]; day: string[] }> = {
+const SKY = {
   clear: { night: ['#060818', '#0a0e26', '#0f1533', '#161c40'], day: ['#2f5684', '#3b6697', '#4a77a8', '#5b86b5'] },
   overcast: { night: ['#0c0e1a', '#101321', '#151829', '#1a1d30'], day: ['#4d545f', '#58606b', '#636b76', '#6e7681'] },
+};
+const CLOUD = {
+  day: { lit: '#e6eaf0', shade: '#c3cad6' },
+  night: { lit: '#2a3152', shade: '#1f2542' },
+  stormDay: { lit: '#646b76', shade: '#535a64' },
+  stormNight: { lit: '#1b1e30', shade: '#12141f' },
 };
 const GLOW = '#7c4f63';
 const LIT = ['#e9b860', '#cf9447', '#f0cf8a'];
@@ -52,10 +59,31 @@ const fill = (ctx: Ctx, color: string, x: number, y: number, w: number, h: numbe
   ctx.fillRect(x, y, w, h);
 };
 
+const lerpHex = (a: string, b: string, t: number) =>
+  `#${rgb(a).map((v, i) => Math.round(v + (rgb(b)[i] - v) * t).toString(16).padStart(2, '0')).join('')}`;
+
+const noise = (x: number, y: number) => {
+  const fx = x / CLOUD_CELL.x;
+  const fy = y / CLOUD_CELL.y;
+  const i = Math.floor(fx);
+  const j = Math.floor(fy);
+  const u = fx - i;
+  const v = fy - j;
+  const su = u * u * (3 - 2 * u);
+  const sv = v * v * (3 - 2 * v);
+  const top = hash(i, j) + (hash(i + 1, j) - hash(i, j)) * su;
+  const bottom = hash(i, j + 1) + (hash(i + 1, j + 1) - hash(i, j + 1)) * su;
+  return top + (bottom - top) * sv;
+};
+
+const cloudNoise = (x: number, y: number) => 0.65 * noise(x, y) + 0.35 * noise(x * 2.3 + 40, y * 2.3 + 17);
+
 function drawSky(ctx: Ctx, look: Look) {
-  const palette = SKY[look.sky === 'overcast' ? 'overcast' : 'clear'];
-  const stops = palette.night.map((night, i) => mix(night, palette.day[i], look.light));
-  const glow = (1 - Math.abs(look.light - 0.5) * 2) * (look.sky === 'overcast' ? 0.12 : 0.3);
+  const dark = cloudiness(look.cloud);
+  const stops = SKY.clear.night.map((night, i) =>
+    mix(lerpHex(night, SKY.overcast.night[i], dark), lerpHex(SKY.clear.day[i], SKY.overcast.day[i], dark), look.light),
+  );
+  const glow = (1 - Math.abs(look.light - 0.5) * 2) * (0.3 - 0.18 * dark);
   for (let y = 0; y < GROUND; y++) {
     const t = y / GROUND;
     for (let x = 0; x < WIDTH; x++) {
@@ -64,10 +92,20 @@ function drawSky(ctx: Ctx, look: Look) {
       fill(ctx, warm ? GLOW : stops[i], x, y, 1, 1);
     }
   }
-  if (look.sky === 'overcast' || look.light >= 0.35) return;
-  ctx.globalAlpha = (0.35 - look.light) / 0.35;
-  for (let i = 0; i < 40; i++) fill(ctx, '#c9d2f0', Math.floor(hash(i, 9) * WIDTH), Math.floor(hash(i, 4) * 50), 1, 1);
-  ctx.globalAlpha = 1;
+  if (look.light < 0.35) {
+    ctx.globalAlpha = ((0.35 - look.light) / 0.35) * (1 - dark);
+    for (let i = 0; i < 40; i++) fill(ctx, '#c9d2f0', Math.floor(hash(i, 9) * WIDTH), Math.floor(hash(i, 4) * 50), 1, 1);
+    ctx.globalAlpha = 1;
+  }
+  if (look.cloud <= 0) return;
+  const lit = mix(lerpHex(CLOUD.night.lit, CLOUD.stormNight.lit, dark), lerpHex(CLOUD.day.lit, CLOUD.stormDay.lit, dark), look.light);
+  const shade = mix(lerpHex(CLOUD.night.shade, CLOUD.stormNight.shade, dark), lerpHex(CLOUD.day.shade, CLOUD.stormDay.shade, dark), look.light);
+  for (let y = 0; y < GROUND; y++) {
+    for (let x = 0; x < WIDTH; x++) {
+      const n = cloudNoise(x, y);
+      if (isCloud(n, bayer(x, y), look.cloud)) fill(ctx, n < (look.cloud / 100) * 0.6 ? lit : shade, x, y, 1, 1);
+    }
+  }
 }
 
 function drawCrown(ctx: Ctx, cx: number, cy: number, rx: number, ry: number, color: string) {

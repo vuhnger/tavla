@@ -10,6 +10,7 @@ const hour = (h: number, precipitation: number, wind: number, d = 26): WeatherHo
   temperatureC: 8,
   wind,
   precipitation,
+  cloud: 0,
   symbol: 'cloudy',
 });
 

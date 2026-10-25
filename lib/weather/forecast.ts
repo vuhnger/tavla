@@ -1,9 +1,9 @@
 import { AFTERNOON_HOUR, MORNING_HOUR, NOON_HOUR } from '@/lib/constants/weather';
+import { SLEET_MAX_C, SNOW_MAX_C } from '@/lib/constants/weather';
 import { HOUR_MS } from '@/lib/constants/time';
 import { dateKey, hourLabel, hourOf, nextDayKey } from '@/lib/time';
 import type { WeatherHour } from '@/lib/types';
 
-export type Sky = 'clear' | 'partly' | 'overcast';
 export type Precip = 'none' | 'rain' | 'sleet' | 'snow';
 
 const WET_MM = 0.1;
@@ -15,18 +15,15 @@ export function feelsLike(temperature: number, wind: number): number {
   return 13.12 + 0.6215 * temperature - 11.37 * v + 0.3965 * temperature * v;
 }
 
-export function skyOf(symbol: string): Sky {
-  if (symbol.startsWith('clearsky') || symbol.startsWith('fair')) return 'clear';
-  if (symbol.startsWith('partlycloudy')) return 'partly';
-  return 'overcast';
-}
-
-export function precipOf(hour: Pick<WeatherHour, 'symbol' | 'precipitation'>): Precip {
-  const { symbol, precipitation } = hour;
+export function precipOf(hour: Pick<WeatherHour, 'symbol' | 'precipitation'> & { temperatureC?: number }): Precip {
+  const { symbol, precipitation, temperatureC } = hour;
   if (symbol.includes('snow')) return 'snow';
   if (symbol.includes('sleet')) return 'sleet';
-  if (symbol.includes('rain') || precipitation >= WET_MM) return 'rain';
-  return 'none';
+  if (symbol.includes('rain')) return 'rain';
+  if (precipitation < WET_MM) return 'none';
+  if (temperatureC === undefined) return 'rain';
+  if (temperatureC <= SNOW_MAX_C) return 'snow';
+  return temperatureC <= SLEET_MAX_C ? 'sleet' : 'rain';
 }
 
 const PRECIP_WORDS: Record<Exclude<Precip, 'none'>, string> = { rain: 'regn', sleet: 'sludd', snow: 'snø' };
