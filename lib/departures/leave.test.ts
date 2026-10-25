@@ -2,10 +2,19 @@ import { expect, test } from 'bun:test';
 import { ALL_QUAYS } from '@/lib/constants/departures';
 import type { Departure } from '@/lib/types';
 import { hourLabel } from '@/lib/time';
-import { minutesUntil, upcomingLeaves } from './leave';
+import { disruptions, minutesUntil, upcomingLeaves } from './leave';
 
 const at = (h: number, m: number, s = 0) => new Date(`2026-10-26T${hourLabel(h)}:${hourLabel(m)}:${hourLabel(s)}+01:00`);
-const departure = (time: Date, quay = 'in'): Departure => ({ destination: quay, quay, time: time.toISOString() });
+const departure = (time: Date, quay = 'in'): Departure => ({ destination: quay, quay, time: time.toISOString(), situations: [] });
+
+test('disruptions lists each summary once, in order', () => {
+  const trains = [
+    { ...departure(at(21, 30)), situations: ['Buss for tog', 'Signalfeil'] },
+    { ...departure(at(21, 45)), situations: ['Buss for tog'] },
+    departure(at(22, 0)),
+  ];
+  expect(disruptions(upcomingLeaves(trains, at(21, 0), 'in', 16, 6))).toEqual(['Buss for tog', 'Signalfeil']);
+});
 
 test('leave time is the departure minus the walk, rounded down to the minute', () => {
   const [first] = upcomingLeaves([departure(at(21, 21, 30))], at(20, 55), 'in', 16, 6);

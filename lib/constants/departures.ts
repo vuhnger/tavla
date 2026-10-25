@@ -22,3 +22,4 @@ export const SOON_MINUTES = 60;
 export const DEPARTURES_REFRESH_MS = minutesToMilliseconds(1);
 export const DEPARTURES_CACHE = 's-maxage=30, stale-while-revalidate=60';
 export const SEARCH_CACHE = 's-maxage=86400';
+export const NORWEGIAN_LANGUAGES = ['no', 'nb', 'nob', 'nn', 'nno'];

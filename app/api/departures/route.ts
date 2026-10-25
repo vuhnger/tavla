@@ -2,7 +2,8 @@ import { DEPARTURE_COUNT, DEPARTURES_CACHE, RAIL_MODES, STOP_ID_PATTERN } from '
 import { REQUEST_TIMEOUT_MS } from '@/lib/constants/http';
 import { env } from '@/lib/env';
 import { respond } from '@/lib/respond';
-import type { Departure, DeparturesResponse } from '@/lib/types';
+import { type EnturCall, toDepartures } from '@/lib/departures/entur';
+import type { DeparturesResponse } from '@/lib/types';
 
 const ENTUR_URL = 'https://api.entur.io/journey-planner/v3/graphql';
 const TIME_RANGE_SECONDS = 72_100;
@@ -15,28 +16,17 @@ const QUERY = `
         expectedDepartureTime
         destinationDisplay { frontText }
         quay { id }
+        cancellation
+        situations { summary { value language } }
       }
     }
   }
 `;
 
-interface EnturCall {
-  aimedDepartureTime: string;
-  expectedDepartureTime?: string;
-  destinationDisplay: { frontText: string };
-  quay?: { id: string };
-}
-
 interface EnturResponse {
   data?: { stopPlace?: { estimatedCalls: EnturCall[] } | null };
   errors?: { message: string }[];
 }
-
-const toDeparture = (call: EnturCall): Departure => ({
-  time: call.expectedDepartureTime ?? call.aimedDepartureTime,
-  destination: call.destinationDisplay.frontText,
-  quay: call.quay?.id ?? '',
-});
 
 export async function GET(request: Request) {
   const stop = new URL(request.url).searchParams.get('stop') ?? '';
@@ -58,7 +48,7 @@ export async function GET(request: Request) {
     if (errors?.length) throw new Error('Entur returned GraphQL errors');
 
     return respond<DeparturesResponse>(
-      { departures: (data?.stopPlace?.estimatedCalls ?? []).map(toDeparture) },
+      { departures: toDepartures(data?.stopPlace?.estimatedCalls ?? []) },
       200,
       DEPARTURES_CACHE,
     );

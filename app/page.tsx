@@ -20,6 +20,7 @@ import { isScreenOff } from '@/lib/screen';
 import type { DeparturesResponse, WeatherResponse, WorkoutResponse } from '@/lib/types';
 import { hourAt, laterForecast, precipSpell } from '@/lib/weather/forecast';
 import { outfitAt } from '@/lib/weather/outfit';
+import { runLine } from '@/lib/weather/run';
 import { sunLine } from '@/lib/weather/sun';
 import { workoutLines } from '@/lib/workout/today';
 
@@ -36,7 +37,7 @@ export default function Board() {
   const outfit = outfitAt(hours, now);
   const leaves = upcomingLeaves(departures?.departures ?? [], now, settings.quay, settings.walk, BOARD_ROWS);
   const workouts = workoutLines(plan?.workouts ?? [], now);
-  const notes = [precipSpell(hours), laterForecast(hours, now), sunLine(now)].filter((note) => note !== null);
+  const notes = [precipSpell(hours), laterForecast(hours, now), runLine(hours, now), sunLine(now)].filter((note) => note !== null);
 
   return (
     <Screen>
