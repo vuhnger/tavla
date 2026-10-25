@@ -2,7 +2,7 @@ import { expect, test } from 'bun:test';
 import { ALL_QUAYS } from '@/lib/constants/departures';
 import type { Departure } from '@/lib/types';
 import { hourLabel } from '@/lib/time';
-import { disruptions, minutesUntil, upcomingLeaves } from './leave';
+import { disruptions, leavingNow, minutesUntil, upcomingLeaves } from './leave';
 
 const at = (h: number, m: number, s = 0) => new Date(`2026-10-26T${hourLabel(h)}:${hourLabel(m)}:${hourLabel(s)}+01:00`);
 const departure = (time: Date, quay = 'in'): Departure => ({ destination: quay, quay, time: time.toISOString(), situations: [] });
@@ -52,4 +52,10 @@ test('counts real minutes across the switch from summer time', () => {
   const [first] = upcomingLeaves([departure(new Date('2026-10-25T01:30:00Z'))], now, 'in', 16, 6);
   expect(first.leaveAt).toEqual(new Date('2026-10-25T01:14:00Z'));
   expect(minutesUntil(first.leaveAt, now)).toBe(24);
+});
+
+test('it is time to leave in the last three minutes before the leave time', () => {
+  expect(leavingNow(at(21, 8), at(21, 5))).toBe(true);
+  expect(leavingNow(at(21, 8), at(21, 4, 59))).toBe(false);
+  expect(leavingNow(at(21, 5), at(21, 5, 40))).toBe(true);
 });
