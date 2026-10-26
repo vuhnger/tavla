@@ -3,7 +3,7 @@ import { minutesToMilliseconds } from 'date-fns';
 export const STATION = { latitude: 59.9422, longitude: 10.6454 };
 
 export const WEATHER_REFRESH_MS = minutesToMilliseconds(10);
-export const FORECAST_HOURS = 24;
+export const FORECAST_HOURS = 48;
 
 export const DARK_LIGHT = 0.5;
 
