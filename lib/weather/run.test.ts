@@ -1,5 +1,5 @@
 import { expect, test } from 'bun:test';
-import { hhmm, hourLabel } from '@/lib/time';
+import { dateKey, hhmm, hourLabel } from '@/lib/time';
 import type { WeatherHour } from '@/lib/types';
 import { runHour } from './run';
 
@@ -16,7 +16,7 @@ const hour = (h: number, precipitation: number, wind: number, d = 26): WeatherHo
 
 const now = oslo(26, 10);
 const bestHour = (hours: WeatherHour[], at: Date) => {
-  const best = runHour(hours, at);
+  const best = runHour(hours, at, dateKey(at));
   return best && hhmm(best);
 };
 
@@ -37,4 +37,10 @@ test('keeps the current hour slot and hour 21', () => {
 test('returns null with fewer than two candidates', () => {
   expect(bestHour([], now)).toBeNull();
   expect(bestHour([hour(15, 0, 1), hour(22, 0, 0)], now)).toBeNull();
+});
+
+test('finds the hour for another day between the first and last run hour', () => {
+  const hours = [hour(5, 0, 0, 27), hour(7, 1, 2, 27), hour(16, 0, 3, 27), hour(22, 0, 0, 27), hour(11, 0, 0)];
+  const best = runHour(hours, now, '2026-10-27');
+  expect(best && hhmm(best)).toBe('16:00');
 });
