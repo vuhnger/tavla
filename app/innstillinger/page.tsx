@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { Foot } from '@/components/board/foot';
 import { Screen } from '@/components/board/screen';
+import { DayOffField } from '@/components/settings/day-off-field';
 import { DirectionField } from '@/components/settings/direction-field';
 import { Row } from '@/components/settings/row';
 import { StationField } from '@/components/settings/station-field';
@@ -35,6 +36,9 @@ export default function Settings() {
           </Row>
           <Row label="gåtid">
             <WalkField label="gåtid" value={settings.walk} onChange={(walk) => save({ ...settings, walk })} />
+          </Row>
+          <Row label="hverdager">
+            <DayOffField label="hverdager" value={settings.dayOff} onChange={(dayOff) => save({ ...settings, dayOff })} />
           </Row>
         </div>
       )}

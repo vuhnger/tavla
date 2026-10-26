@@ -32,14 +32,14 @@ export default function Board() {
   useReloadOnDeploy();
   const [settings] = useSettings();
   const now = useNow();
-  const awake = now !== null && !isScreenOff(now);
+  const awake = now !== null && settings !== null && !isScreenOff(now, settings);
   const departures = usePoll<DeparturesResponse>(awake && settings && departuresUrl(settings.stop.id), DEPARTURES_REFRESH_MS);
   const weather = usePoll<WeatherResponse>(awake && '/api/weather', WEATHER_REFRESH_MS);
   const plan = usePoll<WorkoutResponse>(awake && '/api/workout', WORKOUT_REFRESH_MS);
   const news = usePoll<NewsResponse>(awake && '/api/news', NEWS_REFRESH_MS);
   useWakeLock();
   if (!settings || !now) return <Screen className="cursor-none" />;
-  if (isScreenOff(now)) return null;
+  if (isScreenOff(now, settings)) return null;
 
   const hours = weather?.hours ?? [];
   const outfit = outfitAt(hours, now);

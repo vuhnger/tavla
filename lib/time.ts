@@ -1,5 +1,5 @@
 import { TZDate, tz } from '@date-fns/tz';
-import { addDays, format, getHours, startOfMinute } from 'date-fns';
+import { addDays, format, getHours, getISODay, startOfMinute } from 'date-fns';
 import { nb } from 'date-fns/locale/nb';
 import { useEffect, useState } from 'react';
 import { MINUTE_MS, TIME_ZONE } from '@/lib/constants/time';
@@ -16,6 +16,8 @@ export const nextDayKey = (day: string) => {
 export const hhmm = (date: Date) => format(date, 'HH:mm', IN_OSLO);
 
 export const hourOf = (date: Date) => getHours(date, IN_OSLO);
+
+export const isoWeekdayOf = (date: Date) => getISODay(date, IN_OSLO);
 
 export const hourLabel = (hour: number) => String(hour).padStart(2, '0');
 
