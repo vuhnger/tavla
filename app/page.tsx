@@ -13,7 +13,7 @@ import { BOARD_ROWS, DEPARTURES_REFRESH_MS } from '@/lib/constants/departures';
 import { NEWS_REFRESH_MS } from '@/lib/constants/news';
 import { WEATHER_REFRESH_MS } from '@/lib/constants/weather';
 import { WORKOUT_REFRESH_MS } from '@/lib/constants/workout';
-import { upcomingLeaves } from '@/lib/departures/leave';
+import { disruptions, upcomingLeaves } from '@/lib/departures/leave';
 import { departuresUrl } from '@/lib/departures/url';
 import { useNow } from '@/lib/time';
 import { usePoll } from '@/lib/hooks/use-poll';
@@ -53,7 +53,7 @@ export default function Board() {
       <Departures leaves={leaves} now={now} />
       {outfit && <Clothing spec={sceneSpec(hours, now, outfit)} />}
       {workouts.length > 0 && <Workouts lines={workouts} />}
-      {news?.headline && <News headline={news.headline} />}
+      {news?.headline && disruptions(leaves).length === 0 && <News headline={news.headline} />}
       <Foot>
         {notes.map((note) => (
           <span key={note}>{note}</span>
