@@ -3,7 +3,7 @@
 @tailwind utilities;
 
 html {
-  font-size: min(calc(100vw / 120), calc(100svh / 67.5));
+  font-size: min(calc(100vw / 120), calc(100vh / 67.5));
   background: #000;
   color-scheme: dark;
 }

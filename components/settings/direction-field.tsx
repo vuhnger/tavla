@@ -16,7 +16,7 @@ export function DirectionField({
       {options.map((option) => (
         <label
           key={option.id}
-          className="cursor-pointer px-4 py-1.5 has-[:checked]:bg-osd has-[:checked]:text-panel has-[:focus-visible]:outline has-[:focus-visible]:outline-[0.1875rem] has-[:focus-visible]:outline-offset-4 has-[:focus-visible]:outline-osd"
+          className={`cursor-pointer px-4 py-1.5 focus-within:outline focus-within:outline-[0.1875rem] focus-within:outline-offset-4 focus-within:outline-osd ${option.id === value ? 'bg-osd text-panel' : ''}`}
         >
           <input
             type="radio"
