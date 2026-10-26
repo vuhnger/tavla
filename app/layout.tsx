@@ -16,7 +16,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="no" className={vcr.variable}>
-      <body className="grid min-h-svh place-items-center bg-black antialiased">{children}</body>
+      <body className="grid min-h-screen place-items-center bg-black antialiased">{children}</body>
     </html>
   );
 }

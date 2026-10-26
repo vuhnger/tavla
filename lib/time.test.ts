@@ -59,3 +59,17 @@ test('pads hours and floors to the minute', () => {
   expect(hourLabel(16)).toBe('16');
   expect(floorMinute(new Date('2026-10-26T07:05:59.999+01:00'))).toEqual(new Date('2026-10-26T07:05:00+01:00'));
 });
+
+test('reads Oslo time on browsers without longOffset time zone names', () => {
+  const original = Intl.DateTimeFormat;
+  Intl.DateTimeFormat = function (locales?: string | string[], options?: Intl.DateTimeFormatOptions) {
+    if (options?.timeZoneName === 'longOffset') throw new RangeError('timeZoneName');
+    return new original(locales, options);
+  } as typeof Intl.DateTimeFormat;
+  try {
+    expect(hhmm(new Date('2026-10-26T06:13:00Z'))).toBe('07:13');
+    expect(dateLabel(new Date('2026-10-26T06:13:00Z'))).toBe('man 26. okt');
+  } finally {
+    Intl.DateTimeFormat = original;
+  }
+});
