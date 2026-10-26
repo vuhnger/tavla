@@ -1,4 +1,4 @@
-import { dateLabel, hhmm } from '@/lib/time';
+import { dateLabel, hhmm, weekLabel } from '@/lib/time';
 import type { WeatherHour } from '@/lib/types';
 import { conditionWord, feelsLike } from '@/lib/weather/forecast';
 
@@ -19,6 +19,7 @@ export function Head({ now, hour }: { now: Date; hour?: WeatherHour }) {
       <p>
         <span className="text-[4rem]">{hhmm(now)}</span>
         <span className="ml-8 text-[2.5rem] text-soft">{dateLabel(now)}</span>
+        <span className="ml-8 text-[2.5rem] text-soft">{weekLabel(now)}</span>
       </p>
       {hour && <Weather hour={hour} />}
     </header>

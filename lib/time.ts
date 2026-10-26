@@ -23,6 +23,8 @@ export const hourLabel = (hour: number) => String(hour).padStart(2, '0');
 
 export const dateLabel = (date: Date) => inOslo(date, 'EEE d. MMM').replace(/\.$/, '');
 
+export const weekLabel = (date: Date) => inOslo(date, "'uke' I");
+
 export const floorMinute = (date: Date) => startOfMinute(date);
 
 export function useNow(): Date | null {

@@ -1,5 +1,5 @@
 import { expect, test } from 'bun:test';
-import { dateKey, dateLabel, floorMinute, hhmm, hourLabel, hourOf, nextDayKey } from './time';
+import { dateKey, dateLabel, floorMinute, hhmm, hourLabel, hourOf, nextDayKey, weekLabel } from './time';
 
 test('formats the clock and the short Norwegian date without dots', () => {
   expect(hhmm(new Date('2026-10-26T07:05:00+01:00'))).toBe('07:05');
@@ -72,4 +72,12 @@ test('reads Oslo time on browsers without longOffset time zone names', () => {
   } finally {
     Intl.DateTimeFormat = original;
   }
+});
+
+test('labels the ISO week in Oslo across the year boundary', () => {
+  expect(weekLabel(new Date('2026-10-26T06:13:00Z'))).toBe('uke 44');
+  expect(weekLabel(new Date('2026-11-01T22:59:00Z'))).toBe('uke 44');
+  expect(weekLabel(new Date('2026-11-01T23:00:00Z'))).toBe('uke 45');
+  expect(weekLabel(new Date('2027-01-01T11:00:00Z'))).toBe('uke 53');
+  expect(weekLabel(new Date('2027-01-04T11:00:00Z'))).toBe('uke 1');
 });
