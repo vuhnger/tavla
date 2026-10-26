@@ -53,7 +53,7 @@ export default function Board() {
       <Departures leaves={leaves} now={now} />
       {outfit && <Clothing spec={sceneSpec(hours, now, outfit)} />}
       {workouts.length > 0 && <Workouts lines={workouts} />}
-      {news?.headline && disruptions(leaves).length === 0 && <News headline={news.headline} />}
+      {news?.headlines?.length && disruptions(leaves).length === 0 ? <News headlines={news.headlines} /> : null}
       <Foot>
         {notes.map((note) => (
           <span key={note}>{note}</span>
