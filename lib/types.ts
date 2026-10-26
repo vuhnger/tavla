@@ -47,3 +47,7 @@ export interface WorkoutResponse {
   workouts: Workout[];
   error?: string;
 }
+
+export interface NewsResponse {
+  headline: string | null;
+}
