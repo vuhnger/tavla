@@ -1,37 +1,40 @@
 import { expect, test } from 'bun:test';
-import { NEWS_MAX_LENGTH } from '@/lib/constants/news';
-import { pickHeadline } from './headline';
+import { NEWS_COUNT, NEWS_MAX_LENGTH } from '@/lib/constants/news';
+import { pickHeadlines } from './headline';
 
 const item = (title: string, ...categories: string[]) => `<item><title>${title}</title><link>https://nrk.no/x</link>${categories.join('')}</item>`;
 const high = '<category domain="emphasis">high</category>';
 const low = '<category domain="emphasis">low</category>';
 const feed = (...items: string[]) => `<?xml version="1.0" encoding="UTF-8"?><rss version="2.0"><channel><title>NRK</title>${items.join('')}</channel></rss>`;
 
-test('picks the first item with emphasis high', () => {
-  expect(pickHeadline(feed(item('Ordinary', low), item('First', high), item('Second', high)))).toBe('First');
+test('puts emphasis high first and keeps feed order within each group', () => {
+  expect(pickHeadlines(feed(item('A', low), item('B', high), item('C'), item('D', high)))).toEqual(['B', 'D', 'A', 'C']);
 });
 
-test('returns null when no item has emphasis high', () => {
-  expect(pickHeadline(feed(item('A', low), item('B')))).toBeNull();
+test('drops repeated titles and stops at the headline count', () => {
+  const titles = ['One', 'One', 'Two', 'Three', 'Four', 'Five', 'Six'];
+  expect(pickHeadlines(feed(...titles.map((title) => item(title))))).toEqual(['One', 'Two', 'Three', 'Four', 'Five', 'Six'].slice(0, NEWS_COUNT));
 });
 
 test('ignores ordinary categories and finds emphasis among several', () => {
   const ordinary = '<category>high</category>';
   const other = '<category domain="topic">high</category>';
-  expect(pickHeadline(feed(item('Not it', ordinary, other), item('It', '<category>Innenriks</category>', high, '<category>Politikk</category>')))).toBe('It');
+  expect(pickHeadlines(feed(item('Not it', ordinary, other), item('It', '<category>Innenriks</category>', high, '<category>Politikk</category>')))).toEqual([
+    'It',
+    'Not it',
+  ]);
 });
 
 test('decodes named and numeric entities', () => {
-  expect(pickHeadline(feed(item('Bj&#248;rn &amp; &#229;ge &lt;3', high)))).toBe('Bjørn & åge <3');
+  expect(pickHeadlines(feed(item('Bj&#248;rn &amp; &#229;ge &lt;3', high)))).toEqual(['Bjørn & åge <3']);
 });
 
 test('caps the length and trims', () => {
-  const headline = pickHeadline(feed(item(`  ${'a'.repeat(NEWS_MAX_LENGTH + 50)}  `, high)));
-  expect(headline).toBe('a'.repeat(NEWS_MAX_LENGTH));
+  expect(pickHeadlines(feed(item(`  ${'a'.repeat(NEWS_MAX_LENGTH + 50)}  `, high)))).toEqual(['a'.repeat(NEWS_MAX_LENGTH)]);
 });
 
-test('returns null for bad xml or an empty title', () => {
-  expect(pickHeadline('not xml at all')).toBeNull();
-  expect(pickHeadline('')).toBeNull();
-  expect(pickHeadline(feed(item('   ', high)))).toBeNull();
+test('returns nothing for bad xml or empty titles', () => {
+  expect(pickHeadlines('not xml at all')).toEqual([]);
+  expect(pickHeadlines('')).toEqual([]);
+  expect(pickHeadlines(feed(item('   ', high)))).toEqual([]);
 });

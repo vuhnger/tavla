@@ -54,5 +54,5 @@ export interface WorkoutResponse {
 }
 
 export interface NewsResponse {
-  headline: string | null;
+  headlines: string[];
 }
