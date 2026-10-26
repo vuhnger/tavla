@@ -1,6 +1,11 @@
 import type { DEFAULT_SETTINGS } from './constants/settings';
 
-export type Settings = typeof DEFAULT_SETTINGS;
+export interface DayOff {
+  from: number;
+  to: number;
+}
+
+export type Settings = Omit<typeof DEFAULT_SETTINGS, 'dayOff'> & { dayOff: DayOff | null };
 
 export interface Stop {
   id: string;
